@@ -1,0 +1,71 @@
+{
+  "textMateRules": [
+    {
+      "scope": "pandabt.tree",
+      "settings": {
+        "foreground": "#E06C75",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": "pandabt.composite",
+      "settings": {
+        "foreground": "#E5C07B"
+      }
+    },
+    {
+      "scope": "pandabt.control",
+      "settings": {
+        "foreground": "#C678DD"
+      }
+    },
+    {
+      "scope": "pandabt.decorator",
+      "settings": {
+        "foreground": "#BBB7B7"
+      }
+    },
+    {
+      "scope": "pandabt.task.status",
+      "settings": {
+        "foreground": "#61AFEF",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": "pandabt.task.time",
+      "settings": {
+        "foreground": "#61efe3",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": "pandabt.task.debug",
+      "settings": {
+        "foreground": "#61ef72",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": "pandabt.task.set",
+      "settings": {
+        "foreground": "#61ef79",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": "pandabt.task.set.load",
+      "settings": {
+        "foreground": "#e5ef61",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": "pandabt.task.set.save",
+      "settings": {
+        "foreground": "#ef9c61",
+        "fontStyle": "bold"
+      }
+    }
+  ]
+}

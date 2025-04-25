@@ -1,0 +1,118 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "pandabt",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+
+    { "include": "#trees" },
+    { "include": "#composites" },
+    { "include": "#decorators" },
+    { "include": "#controls" },
+    { "include": "#tasks" }
+  ],
+  "repository": {
+    "comments": {
+      "begin": "(^[ \\t]+)?((//)(?:\\s*((@)internal)(?=\\s|$))?)",
+      "beginCaptures": {
+        "1": { "name": "punctuation.whitespace.comment.leading.pandabt" },
+        "2": { "name": "comment.line.double-slash.pandabt" },
+        "3": { "name": "punctuation.definition.comment.pandabt" },
+        "4": { "name": "storage.type.pandabt" },
+        "5": { "name": "punctuation.decorator.pandabt" }
+      },
+      "end": "(?=^)",
+      "contentName": "comment.line.double-slash.pandabt"
+    },
+    "strings": {
+      "name": "string.quoted.double.pandabt",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.pandabt",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.pandabt",
+          "match": "(^-?[0-9]*\\.?[0-9]+$)"
+        }
+      ]
+    },
+
+    "trees": {
+      "patterns": [
+        {
+          "name": "pandabt.tree",
+          "match": "(\\b(tree)\\b|^\\s*#\\w+)"
+        }
+      ]
+    },
+    "composites": {
+      "patterns": [
+        {
+          "name": "pandabt.composite",
+          "match": "\\b(sequence|fallback|parallel|race)\\b"
+        }
+      ]
+    },
+    "decorators": {
+      "patterns": [
+        {
+          "name": "pandabt.decorator",
+          "match": "\\b(not|mute)\\b"
+        }
+      ]
+    },
+    "controls": {
+      "patterns": [
+        {
+          "name": "pandabt.control.condition",
+          "match": "\\b(while|if|ifelse|before)\\b"
+        },
+        {
+          "name": "pandabt.control.iteration",
+          "match": "\\b(repeat|retry|break)\\b"
+        },
+        {
+          "name": "pandabt.control.random",
+          "match": "\\b(random|shuffle)\\b"
+        }
+      ]
+    },
+    "tasks": {
+      "patterns": [
+        {
+          "name": "pandabt.task.status",
+          "match": "\\b(Succeed|Running|Fail)\\b"
+        },
+        {
+          "name": "pandabt.task.time",
+          "match": "\\b(Wait|WaitTicks|WaitFrame|RealtimeWait)\\b"
+        },
+        {
+          "name": "pandabt.task.debug",
+          "match": "\\b(DebugLog|DebugLogWarning|DebugLogError|DebugBreak)\\b"
+        },
+        {
+          "name": "pandabt.task.set",
+          "match": "\\b(Set)\\b"
+        },
+        {
+          "name": "pandabt.task.set.load",
+          "match": "([@]\\w+)"
+        },
+        {
+          "name": "pandabt.task.set.save",
+          "match": "([&]\\w+)"
+        }
+      ]
+    }
+  },
+  "scopeName": "source.pandabt"
+}
