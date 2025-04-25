@@ -1,0 +1,68 @@
+{
+  "name": "pandabt-helper",
+  "displayName": "PandaBT 2.0 Helper",
+  "description": "panda behavior tree 2.0 helper",
+  "publisher": "Ryulurala",
+  "author": {
+    "name": "Ryulurala",
+    "email": "ryulurala@gmail.com"
+  },
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.99.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./main.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "pandabt-helper.test",
+        "title": "Test Button"
+      }
+    ],
+    "languages": [
+      {
+        "id": "pandabt",
+        "aliases": [
+          "PandaBT",
+          "pandabt"
+        ],
+        "extensions": [
+          ".pbt"
+        ],
+        "configuration": "./config/language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "pandabt",
+        "scopeName": "source.pandabt",
+        "path": "./pandabt/pandabt.tmLanguage.json"
+      }
+    ]
+  },
+  "settings": {
+    "pandabt.applyDefaultColor": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to apply default token colors for pandabt language."
+    }
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "pretest": "npm run lint",
+    "test": "vscode-test",
+    "package": "npx vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.99.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "eslint": "^9.23.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1"
+  }
+}
