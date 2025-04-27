@@ -88,7 +88,7 @@
     {
       "scope": "pandabt.task.bt.monster.contents",
       "settings": {
-        "foreground": "#b9efff"
+        "foreground": "#ffffff"
       }
     },
     {
@@ -100,7 +100,7 @@
     {
       "scope": "pandabt.task.bt.npc.contents",
       "settings": {
-        "foreground": "#b9efff"
+        "foreground": "#ffffff"
       }
     },
     {
