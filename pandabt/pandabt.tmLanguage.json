@@ -10,7 +10,16 @@
     { "include": "#composites" },
     { "include": "#decorators" },
     { "include": "#controls" },
-    { "include": "#tasks" }
+    { "include": "#builtin.tasks" },
+
+    { "include": "#custom.tasks.bt.core" },
+    { "include": "#custom.tasks.bt.direction" },
+    { "include": "#custom.tasks.bt.monster" },
+    { "include": "#custom.tasks.bt.monster.contents" },
+    { "include": "#custom.tasks.bt.npc" },
+    { "include": "#custom.tasks.bt.npc.contents" },
+    { "include": "#custom.tasks.bt.addon.ui" },
+    { "include": "#custom.tasks.bt.addon.ai" }
   ],
   "repository": {
     "comments": {
@@ -85,7 +94,7 @@
         }
       ]
     },
-    "tasks": {
+    "builtin.tasks": {
       "patterns": [
         {
           "name": "pandabt.task.status",
@@ -110,6 +119,88 @@
         {
           "name": "pandabt.task.set.save",
           "match": "([&]\\w+)"
+        }
+      ]
+    },
+
+    "custom.tasks.bt.core": {
+      "patterns": [
+        {
+          "name": "pandabt.task.bt.core",
+          "match": "\\b(WaitState|PlayFeedbacks|PlayFeedbacksWait|HaltBT)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.core",
+          "match": "\\b(SetAnimationParameter|SetActive)\\b"
+        }
+      ]
+    },
+
+    "custom.tasks.bt.direction": {
+      "patterns": [
+        {
+          "name": "pandabt.task.bt.direction",
+          "match": ""
+        }
+      ]
+    },
+    "custom.tasks.bt.monster": {
+      "patterns": [
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(KillSelf|SetGravity)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(IsState|ChangeState)\\b"
+        }
+      ]
+    },
+    "custom.tasks.bt.monster.contents": {
+      "patterns": [
+        {
+          "name": "pandabt.task.bt.monster.contents",
+          "match": "\\bM_[A-Za-z0-9_]+\\b"
+        }
+      ]
+    },
+    "custom.tasts.bt.npc": {
+      "patterns": [
+        {
+          "name": "pandabt.task.bt.npc",
+          "match": ""
+        }
+      ]
+    },
+    "custom.tasks.bt.npc.contents": {
+      "patterns": [
+        {
+          "name": "pandabt.task.bt.npc",
+          "match": "\\bN_[A-Za-z0-9_]+\\b"
+        }
+      ]
+    },
+    "custom.tasks.bt.addon.ui": {
+      "patterns": [
+        {
+          "name": "pandabt.task.bt.addon.ui",
+          "match": "\\b(ShowUI_Dialog|ShowUI_Dialog_Label)\\b"
+        }
+      ]
+    },
+    "custom.tasks.bt.addon.overlap": {
+      "patterns": [
+        {
+          "name": "pandabt.task.bt.addon.overlap",
+          "match": "\\b(IsTargetOverlap_Sphere|IsMonsterTargetOverlap_Sphere)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.addon.overlap",
+          "match": "\\b(IsTargetOverlap_Capsule|IsMonsterTargetOverlap_Capsule)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.addon.overlap",
+          "match": "\\b(IsTargetOverlap_Box|IsMonsterTargetOverlap_Box)\\b"
         }
       ]
     }

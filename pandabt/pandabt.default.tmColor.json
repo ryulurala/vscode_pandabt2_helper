@@ -66,6 +66,54 @@
         "foreground": "#ef9c61",
         "fontStyle": "bold"
       }
+    },
+    {
+      "scope": "pandabt.task.bt.core",
+      "settings": {
+        "foreground": "#b9efff"
+      }
+    },
+    {
+      "scope": "pandabt.task.bt.direction",
+      "settings": {
+        "foreground": "#b9efff"
+      }
+    },
+    {
+      "scope": "pandabt.task.bt.monster",
+      "settings": {
+        "foreground": "#b9efff"
+      }
+    },
+    {
+      "scope": "pandabt.task.bt.monster.contents",
+      "settings": {
+        "foreground": "#b9efff"
+      }
+    },
+    {
+      "scope": "pandabt.task.bt.npc",
+      "settings": {
+        "foreground": "#b9efff"
+      }
+    },
+    {
+      "scope": "pandabt.task.bt.npc.contents",
+      "settings": {
+        "foreground": "#b9efff"
+      }
+    },
+    {
+      "scope": "pandabt.task.bt.addon.ui",
+      "settings": {
+        "foreground": "#b9efff"
+      }
+    },
+    {
+      "scope": "pandabt.task.bt.addon.overlap",
+      "settings": {
+        "foreground": "#b9efff"
+      }
     }
   ]
 }
