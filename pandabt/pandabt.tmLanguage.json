@@ -19,7 +19,7 @@
     { "include": "#custom.tasks.bt.npc" },
     { "include": "#custom.tasks.bt.npc.contents" },
     { "include": "#custom.tasks.bt.addon.ui" },
-    { "include": "#custom.tasks.bt.addon.ai" }
+    { "include": "#custom.tasks.bt.addon.overlap" }
   ],
   "repository": {
     "comments": {
