@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 const root = path.resolve(__dirname, "..");
-const settingsDir = path.join(root, "pandabt-settings");
+const settingsDir = path.join(root, "pandabt");
 
 const tmColorPath = path.join(settingsDir, "pandabt.default.tmColor.json");
 

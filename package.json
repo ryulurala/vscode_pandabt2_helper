@@ -7,7 +7,7 @@
     "name": "Ryulurala",
     "email": "ryulurala@gmail.com"
   },
-  "version": "0.0.2",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.99.0"
   },
@@ -27,10 +27,11 @@
   "contributes": {
     "commands": [
       {
-        "command": "pandabt-helper.test",
-        "title": "Test Button"
+        "command": "pandabt-helper.applyDefaultColor",
+        "title": "PandaBT Apply Default Color"
       }
     ],
+    "configuration": [],
     "languages": [
       {
         "id": "pandabt",
