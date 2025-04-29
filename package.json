@@ -2,12 +2,12 @@
   "name": "pandabt-helper",
   "displayName": "PandaBT 2.0 Helper",
   "description": "panda behavior tree 2.0 helper",
-  "publisher": "Ryulurala",
+  "publisher": "ryulurala",
   "author": {
-    "name": "Ryulurala",
+    "name": "ryulurala",
     "email": "ryulurala@gmail.com"
   },
-  "version": "0.0.8",
+  "version": "0.0.9",
   "engines": {
     "vscode": "^1.99.0"
   },
@@ -36,7 +36,7 @@
         "editor.tabSize": 4,
         "editor.insertSpaces": false,
         "editor.formatOnSave": true,
-        "editor.defaultFormatter": "Ryulurala.pandabt-helper"
+        "editor.defaultFormatter": "ryulurala.pandabt-helper"
       }
     },
     "configuration": [],
