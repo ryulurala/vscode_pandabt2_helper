@@ -127,11 +127,35 @@
       "patterns": [
         {
           "name": "pandabt.task.bt.core",
-          "match": "\\b(WaitState|PlayFeedbacks|PlayFeedbacksWait|HaltBT)\\b"
+          "match": "\\b(WaitAnimState|WaitAnimTag)\\b"
         },
         {
           "name": "pandabt.task.bt.core",
-          "match": "\\b(SetAnimationParameter|SetActive)\\b"
+          "match": "\\b(ClearEventVal|HasEventVal|IsTriggeredByEventVal)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.core",
+          "match": "\\b(HaltBT|IsInitialized|SetInitialized)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.core",
+          "match": "\\b(SetActive|IsActive)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.core",
+          "match": "\\b(PlayFeedbacks|StopFeedbacks|StopFeedbacksAll|PlayFeedbacksWait)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.core",
+          "match": "\\b(SetAnimationParameter|ClearAnimationTrigger|ResetAnimationTrigger|IsAnimationParameter|IsAnimationTagName|IsAnimationStateName)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.core",
+          "match": "\\b(IsJoystickControl|IsKeyboardMouseControl)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.core",
+          "match": "\\b(SetEpisodeComplete|IsEpisodeComplete)\\b"
         }
       ]
     },
@@ -148,11 +172,135 @@
       "patterns": [
         {
           "name": "pandabt.task.bt.monster",
-          "match": "\\b(KillSelf|SetGravity)\\b"
+          "match": "\\b(IsAlive|KillSelf)\\b"
         },
         {
           "name": "pandabt.task.bt.monster",
-          "match": "\\b(IsState|ChangeState)\\b"
+          "match": "\\b(SelfDamage|SelfHeal)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(IsLastCauseType)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(SetGravity|SetParentNull|SetEnable_ModelOrientation)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(IsGrounded)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(SetTarget_Player|SetTarget_Null|SetTarget_Point|HasTarget)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(IsTargetInRangeData|IsTargetInRange|IsTargetInArc|HasTarget)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(SetModelOrientationRotateSpeed|RotateSelf|RotateSelfToOwnerForward|RotateTowardTarget_TechLerp|RotateTowardTarget_Angular|RotateTowardTarget)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(SetRotateTowardTarget|SetRotateTowardTargetBackward|SetRotateTowardTargetForward|SetRotateTowardToActionFlagSetter|SetRotateTowardToActionFlagSetterReversed|SetRotateTowardToActionFlagSetterDirection)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(ChangeForwardToLastFlagSetterDirection|ChangeForwardByLastFlagSetterDirection|ChangeForwardToLastFlagSetterReflection|ChangeForwardToLastDamagedDirection|ChangeForwardByLastDamagedDirection)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(ChangeForwardToLastHitReflection|ChangeForwardToPlayerDirection|ChangeForwardByPlayerDirection|ChangeForwardToPlayerInputDirection)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(MoveForward|MoveForwardTime|MoveStrafe|MoveUpward|MoveToAltitude|MoveTowardTarget|MoveAwayFromTarget)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(Start_NavMeshMoving|Start_NavMeshMoving_Patrol|Stop_NavMeshMoving|Stop_ForceMove)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(HasPathToTarget)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(SetActiveNVO)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(IsHit|IsHitByPlayer)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(HasPathToTarget)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(HasSuperArmor|SetSuperArmor)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(HasNoticed|SetHasNoticed)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(AddFlag|RemoveFlag|HasFlag)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(TriggerActionFlag|HasActionFlagTriggered|ClearActionFlagTriggered)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(HasBuffSelf|AddBuffSelf}RemoveBuffSelf)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(TriggerActionFlag_Parts|DetachParts)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(/ShootSkill|StopSkill)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(/PlayEmoji|StopEmoji)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(/DoHit|ProcessDead)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(/Log|LogError)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(IsState|IsLastState|ChangeState)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(HasOwner|PlayFeedbacks_Owner|SetOwnerAnimationParameter|Wait_Owner)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(SetSingleTrigger)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(IsCloseToTarget_XZ|IsCloseToTarget)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(IsTargetState)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.monster",
+          "match": "\\b(MoveTo_LastTargetPosition)\\b"
         }
       ]
     },
@@ -192,15 +340,19 @@
       "patterns": [
         {
           "name": "pandabt.task.bt.addon.overlap",
-          "match": "\\b(IsTargetOverlap_Sphere|IsMonsterTargetOverlap_Sphere)\\b"
+          "match": "\\b(IsTargetOverlap_Sphere|HasTarget_Sphere|ResetTarget_Sphere|IsMonsterTargetOverlap_Sphere|SyncMonsterTarget_Sphere)\\b"
         },
         {
           "name": "pandabt.task.bt.addon.overlap",
-          "match": "\\b(IsTargetOverlap_Capsule|IsMonsterTargetOverlap_Capsule)\\b"
+          "match": "\\b(IsTargetOverlap_Capsule|HasTarget_Capsule|ResetTarget_Capsule|IsMonsterTargetOverlap_Capsule|SyncMonsterTarget_Capsule)\\b"
         },
         {
           "name": "pandabt.task.bt.addon.overlap",
-          "match": "\\b(IsTargetOverlap_Box|IsMonsterTargetOverlap_Box)\\b"
+          "match": "\\b(IsTargetOverlap_Box|HasTarget_Box|ResetTarget_Box|IsMonsterTargetOverlap_Box|SyncMonsterTarget_Box)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.addon.overlap",
+          "match": "\\b(IsTargetOverlap_Cylinder|HasTarget_Cylinder|ResetTarget_Cylinder|IsMonsterTargetOverlap_Cylinder|SyncMonsterTarget_Cylinder)\\b"
         }
       ]
     }
