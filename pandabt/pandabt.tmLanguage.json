@@ -134,7 +134,7 @@
         },
         {
           "name": "pandabt.task.bt.core",
-          "match": "\\b(HaltBT|IsInitialized|SetInitialized)\\b"
+          "match": "\\b(HaltBT|Log|LogError|IsInitialized|SetInitialized)\\b"
         },
         {
           "name": "pandabt.task.bt.core",
@@ -307,10 +307,6 @@
         {
           "name": "pandabt.task.bt.monster",
           "match": "\\b(/DoHit|ProcessDead)\\b"
-        },
-        {
-          "name": "pandabt.task.bt.monster",
-          "match": "\\b(/Log|LogError)\\b"
         },
         {
           "name": "pandabt.task.bt.monster",
