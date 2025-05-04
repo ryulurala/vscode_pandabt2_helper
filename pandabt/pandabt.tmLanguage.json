@@ -122,7 +122,6 @@
         }
       ]
     },
-
     "custom.tasks.bt.core": {
       "patterns": [
         {
@@ -159,12 +158,47 @@
         }
       ]
     },
-
     "custom.tasks.bt.direction": {
       "patterns": [
         {
           "name": "pandabt.task.bt.direction",
-          "match": ""
+          "match": "\\b(Reserve_Tick_Q)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.direction",
+          "match": "\\b(SetCompletePhase|IsCompletePhase)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.direction",
+          "match": "\\b(SetQuest_Complete|SetQuest_InProgress|IsQuest_UnAssigned|IsQuest_InProgress|IsQuest_Complete)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.direction",
+          "match": "\\b(SaveToGameSlot)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.direction",
+          "match": "\\b(WaitFrame_Q|Wait_Q)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.direction",
+          "match": "\\b(HasEnoughInvenItem|AddItemToInven|DropItemToPlayer)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.direction",
+          "match": "\\b(PlayBGM|StopBGM|PlaySoundSFX)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.direction",
+          "match": "\\b(SetPlayerPosition|SetPlayerRotationWorldAngle)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.direction",
+          "match": "\\b(SetInputBlock|SetInputDefault)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.direction",
+          "match": "\\b(PlayTimeline)\\b"
         }
       ]
     },
@@ -316,7 +350,35 @@
       "patterns": [
         {
           "name": "pandabt.task.bt.npc",
-          "match": ""
+          "match": "\\b(SetRotateToPlayer|RotateTowardPlayer_Q|RotateTowardInitialRotation_Q|RotateTowardAngle_Q)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.npc",
+          "match": "\\b(PlayEmoji|StopEmoji)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.npc",
+          "match": "\\b(IsAlive|IsState|IsLastState|ChangeState)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.npc",
+          "match": "\\b(HasTarget)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.npc",
+          "match": "\\b(AddFlag|RemoveFlag)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.npc",
+          "match": "\\b(SetEnable_ModelOrientation)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.npc",
+          "match": "\\b(SetAutoTick)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.npc",
+          "match": "\\b(MoveToUpward)\\b"
         }
       ]
     },
@@ -332,7 +394,35 @@
       "patterns": [
         {
           "name": "pandabt.task.bt.addon.ui",
+          "match": "\\b(ShowUI_WorldSpace|HideUI_WorldSpace)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.addon.ui",
+          "match": "\\b(ShowUI_Popup_Q|ShowUI_Popup|HideUI_Popup)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.addon.ui",
+          "match": "\\b(ShowUI_Etc|HideUI_Etc)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.addon.ui",
           "match": "\\b(ShowUI_Dialog|ShowUI_Dialog_Label)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.addon.ui",
+          "match": "\\b(ShowUI_DialogSelectable_1|ShowUI_DialogSelectable_2|CheckUI_DialogSelectableIndex_2|ShowUI_DialogSelectable_3|CheckUI_DialogSelectableIndex_3|ShowUI_DialogSelectable_4|CheckUI_DialogSelectableIndex_4|ShowUI_DialogSelectable_Label|CheckUI_DialogSelectableIndex_Label)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.addon.ui",
+          "match": "\\b(ShowUI_DialogSystem|ShowUI_DialogSystem_Label)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.addon.ui",
+          "match": "\\b(ShowUI_DialogSignBoard|ShowUI_DialogSignBoard_Label)\\b"
+        },
+        {
+          "name": "pandabt.task.bt.addon.ui",
+          "match": "\\b(ShowUI_MessageBox|HideUI_MessageBox)\\b"
         }
       ]
     },
