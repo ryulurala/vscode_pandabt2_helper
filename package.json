@@ -69,9 +69,6 @@
     }
   },
   "scripts": {
-    "lint": "eslint .",
-    "pretest": "npm run lint",
-    "test": "vscode-test",
     "package": "npx vsce package"
   },
   "devDependencies": {
