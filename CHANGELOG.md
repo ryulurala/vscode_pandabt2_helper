@@ -85,3 +85,9 @@ All notable changes to the "Panda BT 2.0 Helper" extension will be documented in
 ### Added
 
 - README, CHANGELOG 업데이트
+
+## [0.0.14] - 2025-05-05
+
+### Added
+
+- Panda BT Icon 추가
