@@ -17,10 +17,18 @@
 
 ### ✅ 텍스트 하이라이팅
 
+|            Text Highlighting            |
+| :-------------------------------------: |
+| ![highlighing](img/ex-highlighting.gif) |
+
 - `.pbt` 확장자를 위한 Panda BT 2 전용 하이라이팅 규칙을 제공합니다.
 - 커맨드, 태스크, 주석 등의 가독성을 향상시킵니다.
 
 ### ✅ 포맷팅 (Format on Save)
+
+|           Text Formatting            |
+| :----------------------------------: |
+| ![formatting](img/ex-formatting.gif) |
 
 - VS Code에서 저장 시 자동으로 문서를 포맷합니다.
 - 코드 스타일을 일관되게 유지할 수 있습니다.
