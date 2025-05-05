@@ -79,3 +79,9 @@ All notable changes to the "Panda BT 2.0 Helper" extension will be documented in
 ### Fixed
 
 - Log, LogError Task 정규표현식 매칭 오류 수정
+
+## [0.0.13] - 2025-05-05
+
+### Added
+
+- README, CHANGELOG 업데이트
