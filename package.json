@@ -22,9 +22,9 @@
     "type": "git",
     "url": "https://github.com/ryulurala/vscode-pandabt2-helper.git"
   },
-  "icon": "./img/pandabt-icon.png",
+  "icon": "img/pandabt-icon.png",
   "activationEvents": [],
-  "main": "./main.js",
+  "main": "main.js",
   "contributes": {
     "commands": [
       {
@@ -51,14 +51,14 @@
         "extensions": [
           ".pbt"
         ],
-        "configuration": "./config/language-configuration.json"
+        "configuration": "config/language-configuration.json"
       }
     ],
     "grammars": [
       {
         "language": "pandabt",
         "scopeName": "source.pandabt",
-        "path": "./pandabt/pandabt.tmLanguage.json"
+        "path": "pandabt/pandabt.tmLanguage.json"
       }
     ]
   },
