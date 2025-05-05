@@ -1,3 +1,5 @@
+# 🐼 Panda BT 2.0 Helper
+
 ![GitHub package.json version](https://img.shields.io/github/package-json/v/ryulurala/vscode-pandabt2-helper?style=for-the-badge)
 ![GitHub License](https://img.shields.io/github/license/ryulurala/vscode-pandabt2-helper?style=for-the-badge)
 
@@ -5,34 +7,34 @@
 ![Visual Studio Marketplace Downloads](https://img.shields.io/visual-studio-marketplace/d/ryulurala.pandabt-helper?style=for-the-badge)
 ![Visual Studio Marketplace Installs](https://img.shields.io/visual-studio-marketplace/i/ryulurala.pandabt-helper?style=for-the-badge)
 
-# 🐼 Panda BT 2.0 Helper
+## Overview
 
-**Panda BT 2.0 Helper**는 Behavior Tree 기반 작업을 위한 **텍스트 하이라이팅 + 포맷팅 지원 VS Code 확장 프로그램**입니다.  
-설치만 하면 자동으로 색상과 포맷팅이 적용되어, 개발자가 작성한 BT 노드를 더 쉽게 구분하고 읽을 수 있습니다.
+**Panda BT 2.0 Helper**는 [Panda BT 2 (Unity Asset)](https://assetstore.unity.com/packages/tools/behavior-ai/panda-bt-2-274073)를 사용하는 개발자가 Visual Studio Code에서 `.pbt` 파일을 더 편리하게 편집할 수 있도록 만든 확장입니다.
+
+이 확장은 Panda BT 2.0 사용자 경험을 개선하기 위해 직접 개발되었으며, **텍스트 하이라이팅**과 **자동 포맷팅**을 통해 보다 빠르고 일관된 BT 스크립팅 작업을 지원합니다.
 
 ## ✨ Features
 
-- 🟡 **TextMate 기반 텍스트 하이라이팅**
-- 🟣 **자동 포맷팅 (Format on Save)**
-- 🔁 **기본 색상 규칙 자동 적용**
-- 🎨 **개별 스코프 색상 사용자 정의 가능**
+### ✅ 텍스트 하이라이팅
 
----
+- `.pbt` 확장자를 위한 Panda BT 2 전용 하이라이팅 규칙을 제공합니다.
+- 커맨드, 태스크, 주석 등의 가독성을 향상시킵니다.
 
-## 📋 Requirements
+### ✅ 포맷팅 (Format on Save)
 
-- **VS Code** version `1.99` or higher
-- Built with **Node.js** `v22.14.0`
+- VS Code에서 저장 시 자동으로 문서를 포맷합니다.
+- 코드 스타일을 일관되게 유지할 수 있습니다.
 
----
+## 🖥 Requirements
+
+- Visual Studio Code **v1.99.0 이상**
+- Node.js **v22.14.0** (Extension 빌드 기준)
 
 ## ⚙ Commands
 
-| Command                 | Description                                                        | Shortcut |
-| ----------------------- | ------------------------------------------------------------------ | -------- |
-| **Apply Default Color** | 개발자가 사전에 지정한 TextMate 색상 규칙으로 설정을 재적용합니다. | 없음     |
-
----
+| Command Name                    | Description                                                                                                                                        |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Panda BT: Apply Default Color` | 개발자가 지정한 기본 색상 설정으로 되돌립니다. VS Code의 설정(`settings.json`)에서 텍스트 컬러를 초기화할 수 있습니다. 단축키는 제공되지 않습니다. |
 
 ## 🔧 Configuration
 
