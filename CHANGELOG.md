@@ -97,3 +97,9 @@ All notable changes to the "Panda BT 2.0 Helper" extension will be documented in
 ### Added
 
 - GitHub repository url 수정
+
+## [0.0.16] - 2025-10-04
+
+### Added
+
+- README, CHANGELOG 업데이트
