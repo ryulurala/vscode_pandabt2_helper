@@ -91,3 +91,9 @@ All notable changes to the "Panda BT 2.0 Helper" extension will be documented in
 ### Added
 
 - Panda BT Icon 추가
+
+## [0.0.15] - 2025-10-04
+
+### Added
+
+- GitHub repository url 수정
