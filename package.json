@@ -7,7 +7,7 @@
     "name": "ryulurala",
     "email": "ryulurala@gmail.com"
   },
-  "version": "0.0.16",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.99.0"
   },
@@ -23,15 +23,68 @@
     "url": "https://github.com/ryulurala/vscode_pandabt2_helper.git"
   },
   "icon": "img/pandabt-icon.png",
-  "activationEvents": [],
   "main": "main.js",
+  "activationEvents": [
+    "onStartupFinished",
+    "onLanguage:pandabt"
+  ],
   "contributes": {
-    "commands": [
-      {
-        "command": "pandabt-helper.applyDefaultColor",
-        "title": "PandaBT Apply Default Color"
+    "configuration": {
+      "title": "PandaBT Helper",
+      "properties": {
+        "pandabt-helper.semanticConfig": {
+          "type": "object",
+          "default": {},
+          "markdownDescription": "PandaBT용 정규식 기반 Semantic Token 규칙과 색상을 한 객체로 관리합니다. Settings에서 **Edit in settings.json**으로 settings.json을 열면, 해당 스코프에 값이 없을 때 이 확장이 기본 템플릿(버전 + defaults)을 한 번만 자동 주입합니다. settings.json의 값이 디폴트를 덮어쓰며, settings에 없는 타입은 디폴트가 계속 적용됩니다.",
+          "properties": {
+            "version": {
+              "type": "string",
+              "markdownDescription": "설정 버전(참고용)."
+            },
+            "defaults": {
+              "type": "object",
+              "markdownDescription": "토큰 타입별 디폴트 규칙과 색상. 키는 토큰 타입(ex: pbt.tree)입니다.",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "match": {
+                    "type": "string",
+                    "markdownDescription": "정규표현식(슬래시 제외). 매치되면 해당 타입으로 토큰화."
+                  },
+                  "flags": {
+                    "type": "string",
+                    "markdownDescription": "정규식 플래그(i, m, s, u, y — g는 내부에서 자동)"
+                  },
+                  "foreground": {
+                    "type": "string",
+                    "markdownDescription": "전경색(hex)"
+                  },
+                  "fontStyle": {
+                    "type": "string",
+                    "enum": [
+                      "",
+                      "italic",
+                      "bold",
+                      "underline",
+                      "bold italic",
+                      "underline italic",
+                      "bold underline",
+                      "bold underline italic"
+                    ],
+                    "markdownDescription": "폰트 스타일"
+                  }
+                },
+                "required": [
+                  "match"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        }
       }
-    ],
+    },
     "configurationDefaults": {
       "[pandabt]": {
         "editor.tabSize": 4,
@@ -40,7 +93,6 @@
         "editor.defaultFormatter": "ryulurala.pandabt-helper"
       }
     },
-    "configuration": [],
     "languages": [
       {
         "id": "pandabt",

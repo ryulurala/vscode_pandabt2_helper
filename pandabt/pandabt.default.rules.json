@@ -1,0 +1,77 @@
+{
+  "version": "1.0.0",
+  "defaults": {
+    "pbt.tree": {
+      "match": "(\\b(tree)\\b|^\\s*#\\w+)",
+      "foreground": "#E06C75",
+      "fontStyle": "bold"
+    },
+    "pbt.composite": {
+      "match": "\\b(sequence|fallback|parallel|race)\\b",
+      "foreground": "#E5C07B"
+    },
+    "pbt.decorator": {
+      "match": "\\b(not|mute)\\b",
+      "foreground": "#BBB7B7"
+    },
+    "pbt.decorator.abortable": {
+      "match": "\\b(abortable)\\b",
+      "foreground": "#BBB7B7"
+    },
+    "pbt.control.condition": {
+      "match": "\\b(while|if|ifelse|before)\\b",
+      "foreground": "#C678DD"
+    },
+    "pbt.control.iteration": {
+      "match": "\\b(repeat|retry|break)\\b",
+      "foreground": "#C678DD"
+    },
+    "pbt.control.random": {
+      "match": "\\b(random|shuffle)\\b",
+      "foreground": "#C678DD"
+    },
+    "pbt.task.status": {
+      "match": "\\b(Succeed|Running|Fail)\\b",
+      "foreground": "#61AFEF",
+      "fontStyle": "bold"
+    },
+    "pbt.task.time": {
+      "match": "\\b(Wait|WaitTicks|WaitFrame|RealtimeWait)\\b",
+      "foreground": "#61efe3",
+      "fontStyle": "bold"
+    },
+    "pbt.task.debug": {
+      "match": "\\b(DebugLog|DebugLogWarning|DebugLogError|DebugBreak)\\b",
+      "foreground": "#61ef72",
+      "fontStyle": "bold"
+    },
+    "pbt.task.set": {
+      "match": "\\b(Set)\\b",
+      "foreground": "#61ef79",
+      "fontStyle": "bold"
+    },
+    "pbt.task.set.load": {
+      "match": "([@]\\w+)",
+      "foreground": "#e5ef61",
+      "fontStyle": "bold"
+    },
+    "pbt.task.set.save": {
+      "match": "([&]\\w+)",
+      "foreground": "#ef9c61",
+      "fontStyle": "bold"
+    },
+    "pbt.string": {
+      "match": "\"(?:\\\\.|[^\"])*\"",
+      "foreground": "#A5D6A7"
+    },
+    "pbt.number": {
+      "match": "(?:^|\\s)-?[0-9]*\\.?[0-9]+(?=\\s|$)",
+      "foreground": "#B39DDB"
+    },
+    "pbt.comment": {
+      "match": "(^\\s*//.*$)",
+      "foreground": "#9E9E9E",
+      "fontStyle": "italic"
+    }
+  }
+}
