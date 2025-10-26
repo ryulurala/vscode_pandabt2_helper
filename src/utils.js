@@ -63,12 +63,14 @@ function getScopeForSettingsDoc(doc) {
   return "workspace";
 }
 
-function scopeHasObject(val) {
+// 🌟 [수정] 빈 객체({})를 무시하고, 유효한 템플릿('version' 키)이 있는지 확인하는 함수
+function configHasValidTemplate(val) {
   return !!(
     val &&
     typeof val === "object" &&
     !Array.isArray(val) &&
-    Object.keys(val).length > 0
+    typeof val.version === "string" && // 템플릿의 필수 요소인 'version' 키 확인
+    val.version.length > 0
   );
 }
 
@@ -226,7 +228,7 @@ module.exports = {
   mapTypeKey,
   isSettingsJson,
   getScopeForSettingsDoc,
-  scopeHasObject,
+  configHasValidTemplate, // 🌟 scopeHasObject 대신 사용
   colorForType,
   computeCodeSpansForLine,
   matchInsideSpans,

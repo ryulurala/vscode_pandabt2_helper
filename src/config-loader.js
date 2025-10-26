@@ -6,14 +6,17 @@ const path = require("path");
 function safeReadJSON(filePath, fallback) {
   try {
     const exists = fs.existsSync(filePath);
-    console.log("[config-loader] path:", filePath, "exists:", exists);
+    // 🌟 디버깅 로그 추가
+    console.log(
+      `[config-loader] checking path: ${filePath}, exists: ${exists}`
+    );
     if (!exists) return fallback;
 
     const raw = fs.readFileSync(filePath, "utf-8");
-    console.log("[config-loader] read bytes:", raw.length);
+    console.log(`[config-loader] read bytes: ${raw.length}`);
     return JSON.parse(raw);
   } catch (e) {
-    console.warn("[config-loader] read fail:", filePath, e.message);
+    console.warn(`[config-loader] read fail: ${filePath}`, e.message);
     return fallback;
   }
 }
@@ -46,18 +49,28 @@ function normalizeSettings(json) {
 
 /** 기본 설정 파일 로드 */
 function loadBaseConfiguration(extensionPath) {
+  // 🌟 변경된 파일 이름 확인: pandabt-default-tokens.json
+  const defaultFileName = "pandabt-default-tokens.json";
   const defaultSettingsPath = path.join(
     extensionPath,
     "config",
-    "pandabt-default-tokens.json"
+    defaultFileName
   );
   const fallback = { version: "0.0.0", tokens: {} };
 
   // fs로 읽기
   const rawFs = safeReadJSON(defaultSettingsPath, null);
-  if (rawFs) return normalizeSettings(rawFs);
+  if (rawFs) {
+    console.log(`[config-loader] Successfully loaded default configuration.`);
+    return normalizeSettings(rawFs);
+  }
 
-  // 실패 → 빈 디폴트
+  // 🌟 로딩 실패 시 로그
+  console.warn(
+    `[config-loader] FAILED to load default configuration. Using fallback. This is why the template is empty.`
+  );
+
+  // 최종 실패 → 빈 디폴트
   return normalizeSettings(fallback);
 }
 

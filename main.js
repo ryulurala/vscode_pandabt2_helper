@@ -1,13 +1,12 @@
 // main.js
 const vscode = require("vscode");
 const { loadBaseConfiguration } = require("./src/config-loader");
-const { debounce } = require("./src/utils");
+const { debounce, isSettingsJson } = require("./src/utils");
 const {
   CFG_CONFIG,
   buildMergedTokensAndColors,
   mirrorColorsToEditorCustomizations,
   autoInjectDefaultsOnSettingsOpen,
-  isSettingsJson,
 } = require("./src/settings-controller");
 const { RegexSemanticProvider } = require("./src/semantic-provider");
 const { registerFormatter } = require("./src/formatter");
@@ -71,16 +70,28 @@ async function activate(context) {
     vscode.workspace.onDidChangeConfiguration(onCfgChanged)
   );
 
-  // 5. settings.json 열릴 때 기본 설정 템플릿 주입
-  const seen = new Set();
-  context.subscriptions.push(
-    vscode.workspace.onDidOpenTextDocument(async (doc) => {
-      const key = doc.uri.toString();
-      if (seen.has(key)) return;
-      seen.add(key);
-      await autoInjectDefaultsOnSettingsOpen(doc, defaultCfg);
-    })
+  // 5. [🌟 수정] GUI 버튼 또는 커맨드 팔레트를 통한 수동 주입 명령어 등록
+  const injectDefaultsCommand = vscode.commands.registerCommand(
+    "pandabt-helper.injectDefaultSettings",
+    async () => {
+      // doc을 null로 전달하여 settings-controller.js가 글로벌(User) 설정을 대상으로 하도록 유도합니다.
+      await autoInjectDefaultsOnSettingsOpen(null, defaultCfg);
+
+      // 사용자에게 알림
+      const openSettings = "Open User settings.json";
+      const result = await vscode.window.showInformationMessage(
+        "PandaBT Helper: Default settings template injected into User settings.json.",
+        openSettings
+      );
+
+      if (result === openSettings) {
+        vscode.commands.executeCommand("workbench.action.openSettingsJson");
+      }
+    }
   );
+  context.subscriptions.push(injectDefaultsCommand);
+
+  // 🌟 [제거] settings.json이 열릴 때 자동 주입하는 리스너는 제거합니다.
 
   // 6. settings.json 저장 시 새로고침
   context.subscriptions.push(

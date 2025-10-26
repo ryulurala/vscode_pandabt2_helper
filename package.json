@@ -26,62 +26,30 @@
   "main": "main.js",
   "activationEvents": [
     "onStartupFinished",
+    "onCommand:pandabt-helper.injectDefaultSettings",
     "onLanguage:pandabt"
   ],
   "contributes": {
+    "commands": [
+      {
+        "command": "pandabt-helper.injectDefaultSettings",
+        "title": "settings.json에 기본 템플릿 추가 (Add Default Template)",
+        "icon": "$(add)"
+      }
+    ],
     "configuration": {
       "title": "PandaBT Helper",
       "properties": {
         "pandabt-helper.configuration": {
           "type": "object",
           "default": {},
-          "markdownDescription": "PandaBT용 정규식 기반 Semantic Token **토큰 규칙과 색상**을 한 객체로 관리합니다. Settings에서 **Edit in settings.json**으로 열었을 때 이 키가 비어 있으면, 내부 디폴트 템플릿(version + tokens)을 자동 주입합니다.",
-          "properties": {
-            "version": {
-              "type": "string",
-              "markdownDescription": "설정 버전(표시용)"
-            },
-            "tokens": {
-              "type": "object",
-              "markdownDescription": "토큰 타입별 규칙/색상. 키는 타입명(pbt.tree 등)입니다.",
-              "additionalProperties": {
-                "type": "object",
-                "properties": {
-                  "match": {
-                    "type": "string",
-                    "markdownDescription": "정규표현식(슬래시 제외)"
-                  },
-                  "flags": {
-                    "type": "string",
-                    "markdownDescription": "정규식 플래그(i, m, s, u, y — g는 내부에서 자동)"
-                  },
-                  "foreground": {
-                    "type": "string",
-                    "markdownDescription": "전경색(hex)"
-                  },
-                  "fontStyle": {
-                    "type": "string",
-                    "enum": [
-                      "",
-                      "italic",
-                      "bold",
-                      "underline",
-                      "bold italic",
-                      "underline italic",
-                      "bold underline",
-                      "bold underline italic"
-                    ],
-                    "markdownDescription": "폰트 스타일"
-                  }
-                },
-                "required": [
-                  "match"
-                ],
-                "additionalProperties": false
-              }
-            }
-          },
-          "additionalProperties": false
+          "markdownDescription": "PandaBT용 정규식 기반 Semantic Token 토큰 규칙과 색상을 관리합니다. 이 설정을 편집하려면 아래 **'settings.json에 기본 템플릿 추가' 버튼**을 눌러주세요.",
+          "scope": "resource",
+          "title": "PandaBT Semantic Token Configuration",
+          "button": {
+            "command": "pandabt-helper.injectDefaultSettings",
+            "title": "$(add) settings.json에 기본 템플릿 추가 (Add Default Template)"
+          }
         }
       }
     },

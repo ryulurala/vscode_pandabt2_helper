@@ -5,33 +5,48 @@ const {
   mapTypeKey,
   colorForType,
   canCompileRegex,
-  isSettingsJson,
   getScopeForSettingsDoc,
-  scopeHasObject,
+  configHasValidTemplate, // 🌟 수정됨: configHasValidTemplate 가져오기
 } = require("./utils");
 
 // 단일 설정 키 (settings.json에서 편집되는 키)
 const CFG_CONFIG = "pandabt-helper.configuration";
 
 /* --------------- Auto inject defaults when opening settings --------------- */
-async function autoInjectDefaultsOnSettingsOpen(
-  doc,
-  { version, defaultTokens, defaultColors }
-) {
-  if (!isSettingsJson(doc)) return;
+// doc이 null이면 (명령어로 호출되면) Global/User 설정을 대상으로 함
+async function autoInjectDefaultsOnSettingsOpen(doc, defaultCfg) {
+  // defaultCfg에서 필요한 데이터와 유틸리티 함수를 추출 (config-loader.js가 제공)
+  const { version, defaultTokens, defaultColors } = defaultCfg;
 
-  const scope = getScopeForSettingsDoc(doc); // "user" | "workspace" | "folder"
+  // 1. 대상 범위 결정
+  let scope;
+  if (doc) {
+    // 1-1. 문서가 제공된 경우 (settings.json이 열렸는지 확인)
+    // 이 로직은 현재 main.js에서 사용되지 않지만, 만약을 위해 남겨둡니다.
+    scope = getScopeForSettingsDoc(doc); // 'user' | 'workspace' | 'folder'
+  } else {
+    // 1-2. 문서가 없는 경우 (명령어로 호출된 경우): Global/User 설정을 대상으로 간주
+    scope = "user";
+  }
+
+  // 2. 현재 대상 범위에 이미 설정이 있는지 확인 (템플릿 구조가 존재하는지 확인하도록 변경)
   const cfg = vscode.workspace.getConfiguration();
   const info = cfg.inspect(CFG_CONFIG);
 
+  // 🌟 [수정] 주입 중단 조건: configHasValidTemplate 사용
   const hasInScope =
-    (scope === "user" && scopeHasObject(info?.globalValue)) ||
-    (scope === "workspace" && scopeHasObject(info?.workspaceValue)) ||
-    (scope === "folder" && scopeHasObject(info?.workspaceFolderValue));
+    (scope === "user" && configHasValidTemplate(info?.globalValue)) ||
+    (scope === "workspace" && configHasValidTemplate(info?.workspaceValue)) ||
+    (scope === "folder" && configHasValidTemplate(info?.workspaceFolderValue));
 
-  if (hasInScope) return; // 이미 값이 있으면 주입하지 않음
+  if (hasInScope) {
+    console.log(
+      `[settings-controller] Configuration already has a valid template in ${scope} scope. Skip injection.`
+    );
+    return; // 템플릿이 유효하게 존재하면 주입하지 않음
+  }
 
-  // 디폴트 템플릿으로 구성(버전 + tokens)
+  // 3. 주입할 페이로드 생성
   const payload = {
     version: version || "1.0.0",
     tokens: {},
@@ -43,7 +58,7 @@ async function autoInjectDefaultsOnSettingsOpen(
     const k = t.type;
     payload.tokens[k] = { match: t.match };
     if (typeof t.flags === "string" && t.flags)
-      payload.tokens[k].flags = normalizeFlags(t.flags);
+      payload.tokens[k].flags = normalizeFlags(t.flags); // utils에서 가져온 함수 사용
     const c = defaultColors?.[k] || {};
     if (typeof c.foreground === "string")
       payload.tokens[k].foreground = c.foreground;
@@ -58,11 +73,15 @@ async function autoInjectDefaultsOnSettingsOpen(
       payload.tokens[k].fontStyle = c.fontStyle;
   }
 
+  // 4. 설정 업데이트
   const targetEnum =
     scope === "user"
-      ? vscode.ConfigurationTarget.Global
-      : vscode.ConfigurationTarget.Workspace;
+      ? vscode.ConfigurationTarget.Global // Global (User) settings
+      : vscode.ConfigurationTarget.Workspace; // Workspace/Folder settings
 
+  console.log(
+    `[settings-controller] Injecting default configuration into ${scope} scope.`
+  );
   await cfg.update(CFG_CONFIG, payload, targetEnum);
 }
 
@@ -83,7 +102,10 @@ function inspectConfigurationObject() {
   return picked; // 없으면 undefined
 }
 
-function buildMergedTokensAndColors({ defaultTokens, defaultColors }) {
+function buildMergedTokensAndColors(defaultCfg) {
+  // defaultCfg에서 필요한 데이터와 유틸리티 함수를 추출
+  const { defaultTokens, defaultColors } = defaultCfg;
+
   // 1) 내부 디폴트(파일)
   const baseTokens = new Map(); // typeKey → { match, flags? }
   for (const t of defaultTokens || []) {
@@ -138,17 +160,9 @@ function buildMergedTokensAndColors({ defaultTokens, defaultColors }) {
 }
 
 /* ====================== Mirror Colors to Editor Customizations ====================== */
-async function mirrorColorsToEditorCustomizations({
-  version,
-  defaultTokens,
-  defaultColors,
-}) {
+async function mirrorColorsToEditorCustomizations(defaultCfg) {
   const cfg = vscode.workspace.getConfiguration();
-  const { effectiveColors } = buildMergedTokensAndColors({
-    version,
-    defaultTokens,
-    defaultColors,
-  });
+  const { effectiveColors } = buildMergedTokensAndColors(defaultCfg);
 
   // semantic highlighting 켜기
   if (cfg.get("editor.semanticHighlighting.enabled") !== true) {
@@ -193,5 +207,4 @@ module.exports = {
   buildMergedTokensAndColors,
   mirrorColorsToEditorCustomizations,
   autoInjectDefaultsOnSettingsOpen,
-  isSettingsJson,
 };
