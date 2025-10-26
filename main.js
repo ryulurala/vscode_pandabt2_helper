@@ -1,45 +1,25 @@
 // main.js
+
 const vscode = require("vscode");
 const { loadBaseConfiguration } = require("./src/config-loader");
-const { debounce, isSettingsJson } = require("./src/utils");
+const { isSettingsJson, debounce } = require("./src/utils");
 const {
   CFG_CONFIG,
-  buildMergedTokensAndColors,
-  mirrorColorsToEditorCustomizations,
   autoInjectDefaultsOnSettingsOpen,
+  buildAndRegisterSemanticProvider,
+  createSettingsWatcher,
 } = require("./src/settings-controller");
-const { RegexSemanticProvider } = require("./src/semantic-provider");
 const { registerFormatter } = require("./src/formatter");
 
-let semanticRegistration = null;
-let providerInstance = null;
-let defaultCfg = null;
+/** @type {vscode.Disposable | null} */
+let semanticRegistration = null; // 등록된 SemanticTokensProvider의 Disposable
+/** @type {object | null} */
+let defaultCfg = null; // 기본 설정 데이터
 
-/* ====================== Provider Rebuild Logic ====================== */
-async function rebuildSemanticProvider(context) {
-  if (!defaultCfg) return;
-
-  const { effectiveTokens } = buildMergedTokensAndColors(defaultCfg);
-  const tokenTypes = effectiveTokens.map((r) => r.type);
-  const legend = new vscode.SemanticTokensLegend(tokenTypes, []);
-
-  providerInstance = new RegexSemanticProvider(legend, effectiveTokens);
-
-  if (semanticRegistration) semanticRegistration.dispose();
-
-  semanticRegistration =
-    vscode.languages.registerDocumentSemanticTokensProvider(
-      { language: "pandabt" },
-      providerInstance,
-      legend
-    );
-
-  if (context) {
-    context.subscriptions.push(semanticRegistration);
-  }
-}
-
-/* =========================== Activation ============================ */
+/**
+ * 확장 프로그램 활성화 시 호출됩니다.
+ * @param {vscode.ExtensionContext} context - 확장 프로그램 컨텍스트
+ */
 async function activate(context) {
   // 1. 기본 설정 로드
   defaultCfg = loadBaseConfiguration(context.extensionPath);
@@ -48,36 +28,28 @@ async function activate(context) {
   // 2. Formatter 등록
   registerFormatter(context);
 
-  // 3. 초기 색상 미러링 및 Semantic Provider 등록
-  await mirrorColorsToEditorCustomizations(defaultCfg);
-  await rebuildSemanticProvider(context);
-  providerInstance?.refresh?.();
-
-  // 4. 설정 변경 이벤트 리스너 등록
-  const onCfgChanged = debounce(async (e) => {
-    if (
-      !e ||
-      e.affectsConfiguration(CFG_CONFIG) ||
-      e.affectsConfiguration("editor.semanticTokenColorCustomizations") ||
-      e.affectsConfiguration("editor.semanticHighlighting.enabled")
-    ) {
-      await mirrorColorsToEditorCustomizations(defaultCfg);
-      await rebuildSemanticProvider(context);
-      providerInstance?.refresh?.();
-    }
-  }, 60);
-  context.subscriptions.push(
-    vscode.workspace.onDidChangeConfiguration(onCfgChanged)
+  // 3. 색상 미러링 및 Semantic Provider 등록 (로직은 settings-controller로 위임)
+  semanticRegistration = await buildAndRegisterSemanticProvider(
+    context,
+    defaultCfg
   );
+  context.subscriptions.push(semanticRegistration);
 
-  // 5. [🌟 수정] GUI 버튼 또는 커맨드 팔레트를 통한 수동 주입 명령어 등록
+  // 4. 설정 변경 이벤트 리스너 등록 (로직은 settings-controller로 위임)
+  const settingsWatcher = createSettingsWatcher(
+    context,
+    defaultCfg,
+    CFG_CONFIG
+  );
+  context.subscriptions.push(settingsWatcher);
+
+  // 5. 수동 주입 명령어 등록
   const injectDefaultsCommand = vscode.commands.registerCommand(
     "pandabt-helper.injectDefaultSettings",
     async () => {
-      // doc을 null로 전달하여 settings-controller.js가 글로벌(User) 설정을 대상으로 하도록 유도합니다.
+      // doc을 null로 전달하여 글로벌(User) 설정을 대상으로 함
       await autoInjectDefaultsOnSettingsOpen(null, defaultCfg);
 
-      // 사용자에게 알림
       const openSettings = "Open User settings.json";
       const result = await vscode.window.showInformationMessage(
         "PandaBT Helper: Default settings template injected into User settings.json.",
@@ -91,33 +63,24 @@ async function activate(context) {
   );
   context.subscriptions.push(injectDefaultsCommand);
 
-  // 6. settings.json 저장 시 새로고침
+  // 6. settings.json 저장 시 새로고침 (설정 변경 이벤트와 동일한 기능 수행)
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument(
       debounce(async (doc) => {
         if (isSettingsJson(doc)) {
-          await mirrorColorsToEditorCustomizations(defaultCfg);
-          await rebuildSemanticProvider(context);
-          providerInstance?.refresh?.();
+          // Provider를 다시 빌드하여 변경된 설정 반영
+          await buildAndRegisterSemanticProvider(context, defaultCfg);
         }
       }, 50)
     )
   );
-
-  // 7. 편집기 전환/문서 열림 이벤트에서 토큰 새로고침
-  context.subscriptions.push(
-    vscode.window.onDidChangeActiveTextEditor((ed) => {
-      if (ed?.document?.languageId === "pandabt") providerInstance?.refresh?.();
-    }),
-    vscode.workspace.onDidOpenTextDocument((doc) => {
-      if (doc?.languageId === "pandabt") providerInstance?.refresh?.();
-    })
-  );
 }
 
+/**
+ * 확장 프로그램 비활성화 시 호출됩니다.
+ */
 async function deactivate() {
   if (semanticRegistration) semanticRegistration.dispose();
-  providerInstance = null;
   defaultCfg = null;
 }
 
