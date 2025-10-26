@@ -1,4 +1,3 @@
-// src/formatter.js
 const vscode = require("vscode");
 
 function registerFormatter(context) {

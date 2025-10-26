@@ -91,8 +91,6 @@ async function activate(context) {
   );
   context.subscriptions.push(injectDefaultsCommand);
 
-  // 🌟 [제거] settings.json이 열릴 때 자동 주입하는 리스너는 제거합니다.
-
   // 6. settings.json 저장 시 새로고침
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument(

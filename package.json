@@ -33,7 +33,7 @@
     "commands": [
       {
         "command": "pandabt-helper.injectDefaultSettings",
-        "title": "settings.json에 기본 템플릿 추가 (Add Default Template)",
+        "title": "PandaBT Helper: Add Default Template to settings.json",
         "icon": "$(add)"
       }
     ],

@@ -1,4 +1,3 @@
-// src/semantic-provider.js
 const vscode = require("vscode");
 const {
   buildGlobalRegex,

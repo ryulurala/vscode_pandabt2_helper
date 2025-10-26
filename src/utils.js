@@ -1,4 +1,3 @@
-// src/utils.js
 const vscode = require("vscode");
 
 function debounce(fn, ms = 80) {

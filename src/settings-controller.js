@@ -1,4 +1,3 @@
-// src/settings-controller.js
 const vscode = require("vscode");
 const {
   normalizeFlags,
