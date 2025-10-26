@@ -6,13 +6,13 @@ const {
   defaultColors,
 } = require("./pandabt/pandabt-settings");
 
-// 단일 설정 키(이 이름으로 settings.json에 표시/저장됨)
+// 단일 설정 키 (settings.json에서 편집되는 키)
 const CFG_CONFIG = "pandabt-helper.configuration";
 
 let semanticRegistration = null;
 let providerInstance = null;
 
-/* ------------------------- Utils ------------------------- */
+/* ============================== Utils ============================== */
 function debounce(fn, ms = 80) {
   let t;
   return (...args) => {
@@ -41,7 +41,7 @@ function normalizeFlags(flags) {
   const s = (flags || "").replace(/[^gimsuy]/g, "");
   return [...new Set(s)].join("").replace(/g/g, "");
 }
-// 사용자 타입 키(pbt.tree 등)를 semantic token type 키로 매핑(VS Code 안전 문자만)
+// 사용자 타입 키(pbt.tree 등)를 semantic token type(문자/숫자/_)로 매핑
 function mapTypeKey(type) {
   return String(type).replace(/[^A-Za-z0-9_]/g, "_");
 }
@@ -120,13 +120,117 @@ function colorForType(type) {
   return hslToHex(h, 55, 65);
 }
 
-/* ------------------------- Activation ------------------------- */
+/**
+ * 한 줄을 스캔해 “주석이 아닌 코드 구간” 스팬 계산.
+ * 문자열("...") 내부는 코드로 취급. 그 안의 //, /* \*\/ 는 주석으로 취급하지 않음.
+ * // 라인 주석은 해당 위치부터 줄 끝까지 제외.
+ * \/* ... *\/ 블록 주석은 여러 줄에 걸쳐 제외. inBlockComment 상태 보존.
+ *
+ * @param {string} text
+ * @param {boolean} inBlockComment
+ * @returns {{spans: Array<[number,number]>, inBlockComment: boolean}}
+ */
+
+function computeCodeSpansForLine(text, inBlockComment) {
+  const spans = [];
+  let i = 0;
+  let inString = false; // " ... "
+  let escape = false;
+  let spanStart = null;
+
+  const pushSpan = (start, end) => {
+    if (start != null && end != null && end > start) spans.push([start, end]);
+  };
+
+  while (i < text.length) {
+    const ch = text[i];
+    const next = i + 1 < text.length ? text[i + 1] : "";
+
+    if (inString) {
+      // 문자열 내부
+      if (escape) {
+        escape = false;
+        i++;
+        continue;
+      }
+      if (ch === "\\") {
+        escape = true;
+        i++;
+        continue;
+      }
+      if (ch === '"') {
+        inString = false;
+        i++;
+        continue;
+      }
+      // 코드 스팬 중이 아니면 시작
+      if (spanStart == null) spanStart = i;
+      i++;
+      continue;
+    }
+
+    if (inBlockComment) {
+      // 블록 주석 끝 찾기
+      if (ch === "*" && next === "/") {
+        inBlockComment = false;
+        i += 2;
+      } else {
+        i++;
+      }
+      // 주석 구간은 스팬으로 잡지 않음
+      continue;
+    }
+
+    // 주석/문자열 시작 토큰 검사 (inString false, inBlock false인 경우만)
+    if (ch === "/" && next === "/") {
+      // 라인 주석 시작: 지금까지의 코드 스팬 마감
+      pushSpan(spanStart, i);
+      spanStart = null;
+      // 이후 전부 주석 → 라인 종료
+      break;
+    }
+    if (ch === "/" && next === "*") {
+      // 블록 주석 시작: 지금까지의 코드 스팬 마감
+      pushSpan(spanStart, i);
+      spanStart = null;
+      inBlockComment = true;
+      i += 2;
+      continue;
+    }
+    if (ch === '"') {
+      // 문자열 시작: 코드 스팬 중이 아니면 시작
+      if (spanStart == null) spanStart = i;
+      inString = true;
+      i++;
+      continue;
+    }
+
+    // 일반 코드 문자
+    if (spanStart == null) spanStart = i;
+    i++;
+  }
+
+  // 줄 끝 처리: 블록 주석이 아닐 때만 스팬 마감
+  if (!inBlockComment) {
+    pushSpan(spanStart, text.length);
+  }
+  return { spans, inBlockComment };
+}
+
+/** 매치가 codeSpans 중 하나에 완전히 포함되는지 검사 */
+function matchInsideSpans(start, end, spans) {
+  for (const [s, e] of spans) {
+    if (start >= s && end <= e) return true;
+  }
+  return false;
+}
+
+/* =========================== Activation ============================ */
 async function activate(context) {
   console.log(`[pandabt-helper] activate v${version}`);
 
   registerFormatter(context);
 
-  // 내부 디폴트 + 사용자 설정 병합으로 즉시 동작
   await mirrorColorsToEditorCustomizations();
   await rebuildSemanticProvider(context);
   providerInstance?.refresh?.();
@@ -172,7 +276,7 @@ async function activate(context) {
     )
   );
 
-  // 에디터 전환/문서 열림도 갱신
+  // 편집기 전환/문서 열림 이벤트에서 토큰 새로고침
   context.subscriptions.push(
     vscode.window.onDidChangeActiveTextEditor((ed) => {
       if (ed?.document?.languageId === "pandabt") providerInstance?.refresh?.();
@@ -185,7 +289,7 @@ async function activate(context) {
 
 async function deactivate() {}
 
-/* ---------------------- Auto inject on settings open ---------------------- */
+/* --------------- Auto inject defaults when opening settings --------------- */
 async function autoInjectDefaultsOnSettingsOpen(doc) {
   if (!isSettingsJson(doc)) return;
 
@@ -200,16 +304,16 @@ async function autoInjectDefaultsOnSettingsOpen(doc) {
 
   if (hasInScope) return; // 이미 값이 있으면 주입하지 않음
 
-  // 디폴트 템플릿: { version, tokens: { typeKey: { match, flags?, foreground?, fontStyle? } } }
+  // 디폴트 템플릿으로 구성(버전 + tokens)
   const payload = {
     version: version || "1.0.0",
     tokens: {},
   };
 
-  // defaultTokens + defaultColors를 합쳐 tokens로 직렬화
+  // defaultTokens + defaultColors → tokens로 직렬화
   for (const t of defaultTokens || []) {
     if (!t || !t.type || !t.match) continue;
-    const k = t.type; // settings에는 원본 키(pbt.tree 등)로 노출
+    const k = t.type;
     payload.tokens[k] = { match: t.match };
     if (typeof t.flags === "string" && t.flags)
       payload.tokens[k].flags = normalizeFlags(t.flags);
@@ -219,10 +323,8 @@ async function autoInjectDefaultsOnSettingsOpen(doc) {
     if (typeof c.fontStyle === "string")
       payload.tokens[k].fontStyle = c.fontStyle;
   }
-
-  // defaultColors에만 있고 defaultTokens엔 없는 타입도 보강
   for (const [k, c] of Object.entries(defaultColors || {})) {
-    if (!payload.tokens[k]) payload.tokens[k] = { match: "" }; // match가 비면 사용자가 채울 수도 있음
+    if (!payload.tokens[k]) payload.tokens[k] = { match: "" };
     if (c.foreground && !payload.tokens[k].foreground)
       payload.tokens[k].foreground = c.foreground;
     if (c.fontStyle && !payload.tokens[k].fontStyle)
@@ -236,13 +338,12 @@ async function autoInjectDefaultsOnSettingsOpen(doc) {
 
   await cfg.update(CFG_CONFIG, payload, targetEnum);
 
-  // 즉시 반영
   await mirrorColorsToEditorCustomizations();
   await rebuildSemanticProvider();
   providerInstance?.refresh?.();
 }
 
-/* ---------------------- Build effective (defaults + user) ---------------------- */
+/* --------------- Build effective (defaults + user merged) --------------- */
 function inspectConfigurationObject() {
   const cfg = vscode.workspace.getConfiguration();
   const info = cfg.inspect(CFG_CONFIG) || {};
@@ -266,26 +367,23 @@ function buildMergedTokensAndColors() {
     if (!t || !t.type || !t.match) continue;
     baseTokens.set(t.type, { match: t.match, flags: normalizeFlags(t.flags) });
   }
-  const baseColors = { ...(defaultColors || {}) }; // typeKey → { foreground?, fontStyle? }
+  const baseColors = { ...(defaultColors || {}) };
 
   // 2) 사용자 설정(단일 키: pandabt-helper.configuration)
   const userObj = inspectConfigurationObject(); // { version, tokens:{ typeKey: {...} } }
   const userTokensObj =
     userObj?.tokens && typeof userObj.tokens === "object" ? userObj.tokens : {};
 
-  // 3) 병합: 사용자 우선(토큰/색 모두 덮어씀)
+  // 3) 병합: 사용자 우선
   for (const [typeKey, def] of Object.entries(userTokensObj)) {
     if (!def || typeof def !== "object") continue;
 
-    // 토큰(정규식)
     if (typeof def.match === "string" && def.match.length > 0) {
       baseTokens.set(typeKey, {
         match: def.match,
         flags: normalizeFlags(def.flags),
       });
     }
-
-    // 색
     const c = {};
     if (typeof def.foreground === "string") c.foreground = def.foreground;
     if (typeof def.fontStyle === "string") c.fontStyle = def.fontStyle;
@@ -316,7 +414,7 @@ function buildMergedTokensAndColors() {
   return { effectiveTokens, effectiveColors };
 }
 
-/* ---------------------- Provider & Colors ---------------------- */
+/* ====================== Provider & Colors ====================== */
 async function rebuildSemanticProvider(context) {
   const { effectiveTokens } = buildMergedTokensAndColors();
   const tokenTypes = effectiveTokens.map((r) => r.type);
@@ -358,16 +456,30 @@ class RegexSemanticProvider {
     const b = new vscode.SemanticTokensBuilder(this.legend);
     if (!this.compiled.length) return b.build();
 
+    let inBlockComment = false; // 멀티라인 블록 주석 상태 유지
+
     for (let line = 0; line < doc.lineCount; line++) {
       const text = doc.lineAt(line).text;
+
+      // 라인별로 “주석이 아닌 코드 구간” 계산
+      const r = computeCodeSpansForLine(text, inBlockComment);
+      inBlockComment = r.inBlockComment;
+      const codeSpans = r.spans; // Array<[start,end)>
+
+      if (codeSpans.length === 0) continue;
+
       for (const { re, idx } of this.compiled) {
         re.lastIndex = 0;
         let m;
         while ((m = re.exec(text)) !== null) {
           const start = m.index,
-            len = m[0].length;
-          if (len > 0) b.push(line, start, len, idx, 0);
-          if (m.index === re.lastIndex) re.lastIndex++;
+            len = m[0].length,
+            end = start + len;
+          // 매치가 코드 스팬 내부에 완전히 포함될 때만 토큰 푸시
+          if (matchInsideSpans(start, end, codeSpans)) {
+            if (len > 0) b.push(line, start, len, idx, 0);
+          }
+          if (m.index === re.lastIndex) re.lastIndex++; // 무한루프 방지
         }
       }
     }
@@ -418,7 +530,7 @@ async function mirrorColorsToEditorCustomizations() {
   }
 }
 
-/* ------------------------------ Formatter ------------------------------ */
+/* ============================ Formatter ============================ */
 function registerFormatter(context) {
   const formatter = vscode.languages.registerDocumentFormattingEditProvider(
     "pandabt",
