@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "defaults": {
+  "tokens": {
     "pbt.tree": {
       "match": "(\\b(tree)\\b|^\\s*#\\w+)",
       "foreground": "#E06C75",

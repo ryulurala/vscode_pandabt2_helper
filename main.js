@@ -1,18 +1,18 @@
+// main.js
 const vscode = require("vscode");
 const {
   version,
-  defaultRules,
+  defaultTokens,
   defaultColors,
 } = require("./pandabt/pandabt-settings");
 
-// 설정 키
-const CFG_RULES = "pandabt-helper.semanticRules"; // [{ type, match, flags? }]
-const CFG_COLORS = "pandabt-helper.semanticColors"; // { [type]: { foreground?, fontStyle? } }
+// 단일 설정 키(이 이름으로 settings.json에 표시/저장됨)
+const CFG_CONFIG = "pandabt-helper.configuration";
 
 let semanticRegistration = null;
 let providerInstance = null;
 
-/* ------------------------- Utils: small helpers ------------------------- */
+/* ------------------------- Utils ------------------------- */
 function debounce(fn, ms = 80) {
   let t;
   return (...args) => {
@@ -41,15 +41,40 @@ function normalizeFlags(flags) {
   const s = (flags || "").replace(/[^gimsuy]/g, "");
   return [...new Set(s)].join("").replace(/g/g, "");
 }
-function sanitizeType(type) {
-  // 토큰 타입/색상 키 통일: '.' 같은 문자를 '_'로 치환(일관성 유지)
+// 사용자 타입 키(pbt.tree 등)를 semantic token type 키로 매핑(VS Code 안전 문자만)
+function mapTypeKey(type) {
   return String(type).replace(/[^A-Za-z0-9_]/g, "_");
 }
-function colorForType(type) {
-  const h = ((hashString(type) % 360) + 360) % 360,
-    s = 55,
-    l = 65;
-  return hslToHex(h, s, l);
+
+function isSettingsJson(doc) {
+  if (
+    doc?.uri?.scheme === "vscode-userdata" &&
+    /\/User\/settings\.json$/i.test(doc.uri.path)
+  )
+    return true;
+  try {
+    const p = doc?.uri?.fsPath || "";
+    if (/[/\\]\.vscode[/\\]settings\.json$/i.test(p)) return true;
+  } catch {}
+  return false;
+}
+function getScopeForSettingsDoc(doc) {
+  if (
+    doc?.uri?.scheme === "vscode-userdata" &&
+    /\/User\/settings\.json$/i.test(doc.uri.path)
+  )
+    return "user";
+  const wf = vscode.workspace.getWorkspaceFolder(doc?.uri);
+  if (wf) return "folder";
+  return "workspace";
+}
+function scopeHasObject(val) {
+  return !!(
+    val &&
+    typeof val === "object" &&
+    !Array.isArray(val) &&
+    Object.keys(val).length > 0
+  );
 }
 function hashString(s) {
   let h = 0;
@@ -68,26 +93,20 @@ function hslToHex(h, s, l) {
   if (h < 60) {
     r = c;
     g = x;
-    b = 0;
   } else if (h < 120) {
     r = x;
     g = c;
-    b = 0;
   } else if (h < 180) {
-    r = 0;
     g = c;
     b = x;
   } else if (h < 240) {
-    r = 0;
     g = x;
     b = c;
   } else if (h < 300) {
     r = x;
-    g = 0;
     b = c;
   } else {
     r = c;
-    g = 0;
     b = x;
   }
   const toHex = (v) =>
@@ -96,49 +115,51 @@ function hslToHex(h, s, l) {
       .padStart(2, "0");
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
-function isSettingsJson(doc) {
-  if (
-    doc?.uri?.scheme === "vscode-userdata" &&
-    /\/User\/settings\.json$/i.test(doc.uri.path)
-  )
-    return true;
-  try {
-    const p = doc?.uri?.fsPath || "";
-    if (/[/\\]\.vscode[/\\]settings\.json$/i.test(p)) return true;
-  } catch {}
-  return false;
-}
-function scopeHasValue(val) {
-  if (Array.isArray(val)) return val.length > 0;
-  if (val && typeof val === "object") return Object.keys(val).length > 0;
-  return !!val;
+function colorForType(type) {
+  const h = ((hashString(type) % 360) + 360) % 360;
+  return hslToHex(h, 55, 65);
 }
 
-/* ---------------------------- Activation ---------------------------- */
+/* ------------------------- Activation ------------------------- */
 async function activate(context) {
-  console.log(
-    `[pandabt-helper] activate v${version} rules:${
-      defaultRules?.length || 0
-    } colors:${Object.keys(defaultColors || {}).length}`
-  );
+  console.log(`[pandabt-helper] activate v${version}`);
 
   registerFormatter(context);
 
+  // 내부 디폴트 + 사용자 설정 병합으로 즉시 동작
   await mirrorColorsToEditorCustomizations();
   await rebuildSemanticProvider(context);
   providerInstance?.refresh?.();
 
-  // 설정 변경 → 즉시 반영(우선순위 병합 사용)
-  const onCfgChanged = debounce(async () => {
-    await mirrorColorsToEditorCustomizations();
-    await rebuildSemanticProvider(context);
-    providerInstance?.refresh?.();
-  }, 80);
+  // 설정 변경 → 즉시 반영
+  const onCfgChanged = debounce(async (e) => {
+    if (
+      !e ||
+      e.affectsConfiguration(CFG_CONFIG) ||
+      e.affectsConfiguration("editor.semanticTokenColorCustomizations") ||
+      e.affectsConfiguration("editor.semanticHighlighting.enabled")
+    ) {
+      await mirrorColorsToEditorCustomizations();
+      await rebuildSemanticProvider(context);
+      providerInstance?.refresh?.();
+    }
+  }, 60);
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration(onCfgChanged)
   );
 
-  // settings.json 저장 시에도 반영
+  // settings.json 열릴 때: 키가 비어 있으면 디폴트 템플릿 주입
+  const seen = new Set();
+  context.subscriptions.push(
+    vscode.workspace.onDidOpenTextDocument(async (doc) => {
+      const key = doc.uri.toString();
+      if (seen.has(key)) return;
+      seen.add(key);
+      await autoInjectDefaultsOnSettingsOpen(doc);
+    })
+  );
+
+  // settings.json 저장 후에도 반영
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument(
       debounce(async (doc) => {
@@ -151,7 +172,7 @@ async function activate(context) {
     )
   );
 
-  // 편집기 전환/문서 열림에도 갱신
+  // 에디터 전환/문서 열림도 갱신
   context.subscriptions.push(
     vscode.window.onDidChangeActiveTextEditor((ed) => {
       if (ed?.document?.languageId === "pandabt") providerInstance?.refresh?.();
@@ -164,63 +185,143 @@ async function activate(context) {
 
 async function deactivate() {}
 
-/* ----------------- Read config with custom precedence ----------------- */
-/** VS Code 기본: workspaceFolder > workspace > user > defaults
- *  ▶ 우리가 원하는: **user > workspaceFolder > workspace > defaults**
- *  이유: 사용자가 User에서 바꾼 값은 무조건 최우선으로 즉시 반영되길 원함.
- */
-function getMergedConfigArray(key, defaultsArr) {
+/* ---------------------- Auto inject on settings open ---------------------- */
+async function autoInjectDefaultsOnSettingsOpen(doc) {
+  if (!isSettingsJson(doc)) return;
+
+  const scope = getScopeForSettingsDoc(doc); // "user" | "workspace" | "folder"
   const cfg = vscode.workspace.getConfiguration();
-  const info = cfg.inspect(key);
+  const info = cfg.inspect(CFG_CONFIG);
 
-  // 배열로 정규화
-  const gv = Array.isArray(info?.globalValue) ? info.globalValue : undefined;
-  const wfv = Array.isArray(info?.workspaceFolderValue)
-    ? info.workspaceFolderValue
-    : undefined;
-  const wv = Array.isArray(info?.workspaceValue)
-    ? info.workspaceValue
-    : undefined;
+  const hasInScope =
+    (scope === "user" && scopeHasObject(info?.globalValue)) ||
+    (scope === "workspace" && scopeHasObject(info?.workspaceValue)) ||
+    (scope === "folder" && scopeHasObject(info?.workspaceFolderValue));
 
-  // 우리가 정한 우선순위: user(gv) > workspaceFolder(wfv) > workspace(wv) > defaults
-  const picked = gv ?? wfv ?? wv ?? defaultsArr ?? [];
-  return picked;
+  if (hasInScope) return; // 이미 값이 있으면 주입하지 않음
+
+  // 디폴트 템플릿: { version, tokens: { typeKey: { match, flags?, foreground?, fontStyle? } } }
+  const payload = {
+    version: version || "1.0.0",
+    tokens: {},
+  };
+
+  // defaultTokens + defaultColors를 합쳐 tokens로 직렬화
+  for (const t of defaultTokens || []) {
+    if (!t || !t.type || !t.match) continue;
+    const k = t.type; // settings에는 원본 키(pbt.tree 등)로 노출
+    payload.tokens[k] = { match: t.match };
+    if (typeof t.flags === "string" && t.flags)
+      payload.tokens[k].flags = normalizeFlags(t.flags);
+    const c = defaultColors?.[k] || {};
+    if (typeof c.foreground === "string")
+      payload.tokens[k].foreground = c.foreground;
+    if (typeof c.fontStyle === "string")
+      payload.tokens[k].fontStyle = c.fontStyle;
+  }
+
+  // defaultColors에만 있고 defaultTokens엔 없는 타입도 보강
+  for (const [k, c] of Object.entries(defaultColors || {})) {
+    if (!payload.tokens[k]) payload.tokens[k] = { match: "" }; // match가 비면 사용자가 채울 수도 있음
+    if (c.foreground && !payload.tokens[k].foreground)
+      payload.tokens[k].foreground = c.foreground;
+    if (c.fontStyle && !payload.tokens[k].fontStyle)
+      payload.tokens[k].fontStyle = c.fontStyle;
+  }
+
+  const targetEnum =
+    scope === "user"
+      ? vscode.ConfigurationTarget.Global
+      : vscode.ConfigurationTarget.Workspace;
+
+  await cfg.update(CFG_CONFIG, payload, targetEnum);
+
+  // 즉시 반영
+  await mirrorColorsToEditorCustomizations();
+  await rebuildSemanticProvider();
+  providerInstance?.refresh?.();
 }
-function getMergedConfigObject(key, defaultsObj) {
-  const cfg = vscode.workspace.getConfiguration();
-  const info = cfg.inspect(key);
 
-  const gv =
-    info?.globalValue &&
-    typeof info.globalValue === "object" &&
-    !Array.isArray(info.globalValue)
+/* ---------------------- Build effective (defaults + user) ---------------------- */
+function inspectConfigurationObject() {
+  const cfg = vscode.workspace.getConfiguration();
+  const info = cfg.inspect(CFG_CONFIG) || {};
+  // 우선순위: user > workspaceFolder > workspace
+  const picked =
+    info.globalValue && typeof info.globalValue === "object"
       ? info.globalValue
-      : undefined;
-  const wfv =
-    info?.workspaceFolderValue &&
-    typeof info.workspaceFolderValue === "object" &&
-    !Array.isArray(info.workspaceFolderValue)
+      : info.workspaceFolderValue &&
+        typeof info.workspaceFolderValue === "object"
       ? info.workspaceFolderValue
-      : undefined;
-  const wv =
-    info?.workspaceValue &&
-    typeof info.workspaceValue === "object" &&
-    !Array.isArray(info.workspaceValue)
+      : info.workspaceValue && typeof info.workspaceValue === "object"
       ? info.workspaceValue
       : undefined;
-
-  // user > workspaceFolder > workspace > defaults
-  const picked = gv ?? wfv ?? wv ?? defaultsObj ?? {};
-  return picked;
+  return picked; // 없으면 undefined
 }
 
-/* -------------------- Effective rules & provider -------------------- */
-async function rebuildSemanticProvider(context) {
-  const rules = await getEffectiveRules();
-  const tokenTypes = rules.map((r) => r.type);
-  const legend = new vscode.SemanticTokensLegend(tokenTypes, []);
+function buildMergedTokensAndColors() {
+  // 1) 내부 디폴트(파일)
+  const baseTokens = new Map(); // typeKey → { match, flags? }
+  for (const t of defaultTokens || []) {
+    if (!t || !t.type || !t.match) continue;
+    baseTokens.set(t.type, { match: t.match, flags: normalizeFlags(t.flags) });
+  }
+  const baseColors = { ...(defaultColors || {}) }; // typeKey → { foreground?, fontStyle? }
 
-  providerInstance = new RegexSemanticProvider(legend, rules);
+  // 2) 사용자 설정(단일 키: pandabt-helper.configuration)
+  const userObj = inspectConfigurationObject(); // { version, tokens:{ typeKey: {...} } }
+  const userTokensObj =
+    userObj?.tokens && typeof userObj.tokens === "object" ? userObj.tokens : {};
+
+  // 3) 병합: 사용자 우선(토큰/색 모두 덮어씀)
+  for (const [typeKey, def] of Object.entries(userTokensObj)) {
+    if (!def || typeof def !== "object") continue;
+
+    // 토큰(정규식)
+    if (typeof def.match === "string" && def.match.length > 0) {
+      baseTokens.set(typeKey, {
+        match: def.match,
+        flags: normalizeFlags(def.flags),
+      });
+    }
+
+    // 색
+    const c = {};
+    if (typeof def.foreground === "string") c.foreground = def.foreground;
+    if (typeof def.fontStyle === "string") c.fontStyle = def.fontStyle;
+    if (Object.keys(c).length) {
+      baseColors[typeKey] = { ...(baseColors[typeKey] || {}), ...c };
+    }
+  }
+
+  // 4) 산출
+  const effectiveTokens = [];
+  for (const [typeKey, r] of baseTokens) {
+    if (!r || !r.match) continue;
+    if (!canCompileRegex(r.match, r.flags)) continue;
+    const t = mapTypeKey(typeKey);
+    effectiveTokens.push({ type: t, match: r.match, flags: r.flags });
+  }
+
+  const effectiveColors = {};
+  for (const [typeKey, style] of Object.entries(baseColors)) {
+    const t = mapTypeKey(typeKey);
+    effectiveColors[t] = { ...style };
+    if (!effectiveColors[t].foreground)
+      effectiveColors[t].foreground = colorForType(t);
+    if (typeof effectiveColors[t].fontStyle !== "string")
+      effectiveColors[t].fontStyle = "";
+  }
+
+  return { effectiveTokens, effectiveColors };
+}
+
+/* ---------------------- Provider & Colors ---------------------- */
+async function rebuildSemanticProvider(context) {
+  const { effectiveTokens } = buildMergedTokensAndColors();
+  const tokenTypes = effectiveTokens.map((r) => r.type);
+  const legend = new vscode.SemanticTokensLegend(tokenTypes, []);
+  providerInstance = new RegexSemanticProvider(legend, effectiveTokens);
 
   if (semanticRegistration) semanticRegistration.dispose();
   semanticRegistration =
@@ -232,30 +333,8 @@ async function rebuildSemanticProvider(context) {
   if (context) context.subscriptions.push(semanticRegistration);
 }
 
-async function getEffectiveRules() {
-  // 1) 디폴트를 map으로 구축
-  const map = new Map();
-  for (const r of defaultRules || []) {
-    if (!r || !r.type || !r.match) continue;
-    const t = sanitizeType(r.type);
-    map.set(t, { type: t, match: r.match, flags: normalizeFlags(r.flags) });
-  }
-
-  // 2) 사용자 설정(배열)을 우리가 정한 우선순위로 pick
-  const userRulesPicked = getMergedConfigArray(CFG_RULES, []);
-  for (const r of userRulesPicked) {
-    if (!r || !r.type || !r.match) continue;
-    const t = sanitizeType(r.type);
-    const flags = normalizeFlags(r.flags);
-    if (!canCompileRegex(r.match, flags)) continue;
-    map.set(t, { type: t, match: r.match, flags });
-  }
-
-  return [...map.values()];
-}
-
 class RegexSemanticProvider {
-  constructor(legend, rules) {
+  constructor(legend, tokens) {
     this.legend = legend;
     this._em = new vscode.EventEmitter();
     this.onDidChangeSemanticTokens = this._em.event;
@@ -263,7 +342,7 @@ class RegexSemanticProvider {
     const typeToIndex = new Map();
     legend.tokenTypes.forEach((t, i) => typeToIndex.set(t, i));
 
-    this.compiled = rules
+    this.compiled = tokens
       .map((r) => {
         const re = buildGlobalRegex(r.match, r.flags);
         const idx = typeToIndex.get(r.type);
@@ -274,6 +353,7 @@ class RegexSemanticProvider {
   refresh() {
     this._em.fire();
   }
+
   async provideDocumentSemanticTokens(doc) {
     const b = new vscode.SemanticTokensBuilder(this.legend);
     if (!this.compiled.length) return b.build();
@@ -295,7 +375,6 @@ class RegexSemanticProvider {
   }
 }
 
-/* ---------------------- Colors: mirror to editor ---------------------- */
 async function mirrorColorsToEditorCustomizations() {
   const cfg = vscode.workspace.getConfiguration();
 
@@ -308,23 +387,15 @@ async function mirrorColorsToEditorCustomizations() {
     );
   }
 
-  // 기본색 + 사용자색(우선순위 병합: user > wsf > ws > defaults)
-  const userColorsPicked = getMergedConfigObject(CFG_COLORS, {});
-  const baseColors = {};
-  for (const [k, v] of Object.entries(defaultColors || {}))
-    baseColors[sanitizeType(k)] = v;
-  const merged = { ...baseColors };
-  for (const [k, v] of Object.entries(userColorsPicked || {}))
-    merged[sanitizeType(k)] = v;
+  const { effectiveColors } = buildMergedTokensAndColors();
 
-  // editor.semanticTokenColorCustomizations.rules 로 미러링
   const key = "editor.semanticTokenColorCustomizations";
   const all = cfg.get(key) || {};
   const currRules = all.rules || {};
   let changed = false;
   const next = { ...currRules };
 
-  for (const [type, style] of Object.entries(merged)) {
+  for (const [type, style] of Object.entries(effectiveColors)) {
     const want = {};
     if (style.foreground) want.foreground = style.foreground;
     if (style.fontStyle) want.fontStyle = style.fontStyle;
@@ -347,50 +418,23 @@ async function mirrorColorsToEditorCustomizations() {
   }
 }
 
-/* ------------------------- Optional sanitizer ------------------------- */
-/** 사용자가 settings.json에서 중복/오류 플래그를 넣었을 수 있으니 정리 */
-async function validateNormalizeAndPersistRules() {
-  const cfg = vscode.workspace.getConfiguration();
-  const userRules = getMergedConfigArray(CFG_RULES, []); // 병합된 관점으로 가져오되…
-  // 실제 쓰기는 "사용자가 편집한 스코프"에 해야 하지만, 여기선 보수적으로 workspace에 씁니다.
-  const normalized = [];
-  const seen = new Set();
-
-  for (const r of userRules) {
-    if (!r || !r.type || !r.match) continue;
-    const t = sanitizeType(r.type);
-    const flags = normalizeFlags(r.flags);
-    if (!canCompileRegex(r.match, flags)) continue;
-    if (seen.has(t)) {
-      const idx = normalized.findIndex((n) => n.type === t);
-      if (idx >= 0) normalized.splice(idx, 1);
-    }
-    seen.add(t);
-    normalized.push({ type: t, match: r.match, flags });
-  }
-
-  await cfg.update(CFG_RULES, normalized, vscode.ConfigurationTarget.Workspace);
-}
-
 /* ------------------------------ Formatter ------------------------------ */
 function registerFormatter(context) {
   const formatter = vscode.languages.registerDocumentFormattingEditProvider(
     "pandabt",
     {
       provideDocumentFormattingEdits(document) {
-        const edits = [];
-        const linesToDelete = [];
+        const edits = [],
+          linesToDelete = [];
         for (let i = 0; i < document.lineCount; i++) {
           const line = document.lineAt(i);
           const originalText = line.text;
-
           const isBlankLine = originalText.trim() === "";
           const isOnlyCommentMark = originalText.trim() === "//";
           if (isOnlyCommentMark || isBlankLine) {
             linesToDelete.push(i);
             continue;
           }
-
           const trimmedText = originalText.trimEnd();
           const isCommentLine =
             trimmedText.trimStart().startsWith("//") ||
@@ -404,20 +448,17 @@ function registerFormatter(context) {
             else if (trimmedText[j] === " ") leadingSpaces++;
             else break;
           }
-
           const spaceToTabCount = Math.floor((leadingSpaces + 1) / 4);
           const newIndent = "\t".repeat(leadingTabs + spaceToTabCount);
           const newText = newIndent + trimmedText.trimStart();
-
-          if (newText !== originalText) {
+          if (newText !== originalText)
             edits.push(vscode.TextEdit.replace(line.range, newText));
-          }
         }
         linesToDelete
           .sort((a, b) => b - a)
-          .forEach((idx) => {
-            edits.push(vscode.TextEdit.delete(document.lineAt(idx).range));
-          });
+          .forEach((idx) =>
+            edits.push(vscode.TextEdit.delete(document.lineAt(idx).range))
+          );
         return edits;
       },
     }
