@@ -103,3 +103,11 @@ All notable changes to the "Panda BT 2.0 Helper" extension will be documented in
 ### Added
 
 - README, CHANGELOG 업데이트
+
+## [0.1.0] - 2025-10-27
+
+### Added
+
+- 하이라이팅 아키텍처 전환: TextMate $\rightarrow$ Semantic Token Provider동적
+- 하이라이팅 지원: settings.json을 통한 정규식 기반 토큰 추가/수정 가능.
+- `PandaBT Helper: Add Default Template to settings.json` 커맨드 추가: 기본 토큰 색상 설정 settings.json에 추가.
