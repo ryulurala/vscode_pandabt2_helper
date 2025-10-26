@@ -42,13 +42,51 @@
       "properties": {
         "pandabt-helper.configuration": {
           "type": "object",
-          "default": {},
+          "default": {
+            "version": "1.0.0",
+            "tokens": {
+              "pbt.tree": {
+                "match": "(\\b(tree)\\b|^\\s*#\\w+)",
+                "foreground": "#E06C75",
+                "fontStyle": "bold"
+              }
+            }
+          },
           "markdownDescription": "PandaBT용 정규식 기반 Semantic Token 토큰 규칙과 색상을 관리합니다. 이 설정을 편집하려면 아래 **'settings.json에 기본 템플릿 추가' 버튼**을 눌러주세요.",
           "scope": "resource",
           "title": "PandaBT Semantic Token Configuration",
           "button": {
             "command": "pandabt-helper.injectDefaultSettings",
             "title": "$(add) settings.json에 기본 템플릿 추가 (Add Default Template)"
+          },
+          "properties": {
+            "version": {
+              "type": "string",
+              "description": "설정 버전입니다."
+            },
+            "tokens": {
+              "type": "object",
+              "description": "정의된 모든 토큰 규칙을 포함하는 객체입니다.",
+              "additionalProperties": {
+                "type": "object",
+                "description": "개별 토큰 규칙 정의",
+                "properties": {
+                  "match": {
+                    "type": "string",
+                    "description": "토큰을 식별하는 정규 표현식."
+                  },
+                  "foreground": {
+                    "type": "string",
+                    "format": "color-hex",
+                    "description": "토큰에 적용할 16진수 색상 코드 (예: #RRGGBB)."
+                  },
+                  "fontStyle": {
+                    "type": "string",
+                    "description": "폰트 스타일 (예: 'bold', 'italic', 'underline')."
+                  }
+                }
+              }
+            }
           }
         }
       }
