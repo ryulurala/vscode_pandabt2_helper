@@ -110,7 +110,7 @@
       {
         "language": "pandabt",
         "scopeName": "source.pandabt",
-        "path": "pandabt/pandabt.tmLanguage.json"
+        "path": "config/pandabt-tmLanguage.json"
       }
     ]
   },

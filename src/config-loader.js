@@ -1,28 +1,19 @@
-// pandabt/pandabt-settings.js
+// src/config-loader.js
 const fs = require("fs");
 const path = require("path");
 
-/**
- * 이 파일과 같은 폴더(pandabt)에
- *   - pandabt.default.tokens.json
- * 이 반드시 포함되어야 합니다.
- * VSIX 패키징 시 .vscodeignore에 빠지지 않도록 확인하세요.
- */
-
-const defaultSettingsPath = path.join(__dirname, "pandabt.default.tokens.json");
-
-/** JSON 안전 로더 + 디버그 로그 */
+/** JSON 안전 로더 */
 function safeReadJSON(filePath, fallback) {
   try {
     const exists = fs.existsSync(filePath);
-    console.log("[pandabt-settings] path:", filePath, "exists:", exists);
+    console.log("[config-loader] path:", filePath, "exists:", exists);
     if (!exists) return fallback;
 
     const raw = fs.readFileSync(filePath, "utf-8");
-    console.log("[pandabt-settings] read bytes:", raw.length);
+    console.log("[config-loader] read bytes:", raw.length);
     return JSON.parse(raw);
   } catch (e) {
-    console.warn("[pandabt-settings] read fail:", filePath, e.message);
+    console.warn("[config-loader] read fail:", filePath, e.message);
     return fallback;
   }
 }
@@ -53,31 +44,23 @@ function normalizeSettings(json) {
   return { version, defaultTokens: tokens, defaultColors: colors };
 }
 
-/** 1차 fs, 2차 require fallback */
-function loadDefaults() {
+/** 기본 설정 파일 로드 */
+function loadBaseConfiguration(extensionPath) {
+  const defaultSettingsPath = path.join(
+    extensionPath,
+    "config",
+    "pandabt-default-tokens.json"
+  );
   const fallback = { version: "0.0.0", tokens: {} };
 
-  // 1) fs로 읽기
+  // fs로 읽기
   const rawFs = safeReadJSON(defaultSettingsPath, null);
   if (rawFs) return normalizeSettings(rawFs);
-
-  // 2) require fallback
-  try {
-    const json = require("./pandabt.default.tokens.json");
-    console.log("[pandabt-settings] loaded via require() fallback");
-    return normalizeSettings(json);
-  } catch (e) {
-    console.warn("[pandabt-settings] require fallback failed:", e.message);
-  }
 
   // 실패 → 빈 디폴트
   return normalizeSettings(fallback);
 }
 
-const { version, defaultTokens, defaultColors } = loadDefaults();
-
 module.exports = {
-  version,
-  defaultTokens, // [{ type, match, flags? }]
-  defaultColors, // { [type]: { foreground?, fontStyle? } }
+  loadBaseConfiguration,
 };
