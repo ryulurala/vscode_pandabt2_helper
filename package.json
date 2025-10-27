@@ -25,7 +25,9 @@
   "icon": "img/pandabt-icon.png",
   "main": "main.js",
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onCommand:pandabt-helper.injectDefaultSettings",
+    "onLanguage:pandabt"
   ],
   "contributes": {
     "commands": [
