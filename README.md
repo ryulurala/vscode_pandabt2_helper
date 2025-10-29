@@ -129,11 +129,15 @@
         "foreground": "#E06C75",
         "fontStyle": "bold"
       },
-      "pbt.composite": {
-        "match": "\\b(sequence|fallback|parallel|race)\\b",
+      "pbt.example": {
+        "match": "\\b(example\\b",
         "foreground": "#E5C07B"
       }
     }
   }
 }
 ```
+
+|             Customization             |
+| :-----------------------------------: |
+| ![highlighing](img/customization.gif) |
