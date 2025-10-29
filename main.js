@@ -1,7 +1,5 @@
-// main.js
-
 const vscode = require("vscode");
-const { loadBaseConfiguration } = require("./src/config-loader");
+const { loadComposedConfiguration } = require("./src/config-loader"); // ← 변경
 const { isSettingsJson, debounce } = require("./src/utils");
 const {
   CFG_CONFIG,
@@ -9,33 +7,66 @@ const {
   buildAndRegisterSemanticProvider,
   createSettingsWatcher,
 } = require("./src/settings-controller");
-const { registerFormatter } = require("./src/formatter");
 
-/** @type {vscode.Disposable | null} */
-let semanticRegistration = null; // 등록된 SemanticTokensProvider의 Disposable
-/** @type {object | null} */
-let defaultCfg = null; // 기본 설정 데이터
+let semanticRegistration = null;
+let defaultCfg = null;
 
-/**
- * 확장 프로그램 활성화 시 호출됩니다.
- * @param {vscode.ExtensionContext} context - 확장 프로그램 컨텍스트
- */
 async function activate(context) {
-  // 1. 기본 설정 로드
-  defaultCfg = loadBaseConfiguration(context.extensionPath);
+  // 1) 사용자 설정 읽기 (inspect)
+  const info =
+    vscode.workspace
+      .getConfiguration()
+      .inspect("pandabt-helper.configuration") || {};
+  const userSettings =
+    (info.globalValue &&
+      typeof info.globalValue === "object" &&
+      info.globalValue) ||
+    (info.workspaceFolderValue &&
+      typeof info.workspaceFolderValue === "object" &&
+      info.workspaceFolderValue) ||
+    (info.workspaceValue &&
+      typeof info.workspaceValue === "object" &&
+      info.workspaceValue) ||
+    {};
+
+  // 2) 파일 목록 읽기
+  const configFilesInfo =
+    vscode.workspace.getConfiguration().inspect("pandabt-helper.configFiles") ||
+    {};
+  const configFiles =
+    (Array.isArray(configFilesInfo.globalValue) &&
+      configFilesInfo.globalValue) ||
+    (Array.isArray(configFilesInfo.workspaceFolderValue) &&
+      configFilesInfo.workspaceFolderValue) ||
+    (Array.isArray(configFilesInfo.workspaceValue) &&
+      configFilesInfo.workspaceValue) ||
+    [];
+
+  const workspaceRoot =
+    vscode.workspace.workspaceFolders &&
+    vscode.workspace.workspaceFolders.length
+      ? vscode.workspace.workspaceFolders[0].uri.fsPath
+      : null;
+
+  // 3) 합성 설정 로딩
+  defaultCfg = loadComposedConfiguration(
+    context.extensionPath,
+    userSettings,
+    configFiles,
+    workspaceRoot
+  );
   console.log(`[pandabt-helper] activate v${defaultCfg.version}`);
 
-  // 2. Formatter 등록
+  // 이하 동일
+  const { registerFormatter } = require("./src/formatter");
   registerFormatter(context);
 
-  // 3. 색상 미러링 및 Semantic Provider 등록 (로직은 settings-controller로 위임)
   semanticRegistration = await buildAndRegisterSemanticProvider(
     context,
     defaultCfg
   );
   context.subscriptions.push(semanticRegistration);
 
-  // 4. 설정 변경 이벤트 리스너 등록 (로직은 settings-controller로 위임)
   const settingsWatcher = createSettingsWatcher(
     context,
     defaultCfg,
@@ -43,19 +74,15 @@ async function activate(context) {
   );
   context.subscriptions.push(settingsWatcher);
 
-  // 5. 수동 주입 명령어 등록
   const injectDefaultsCommand = vscode.commands.registerCommand(
     "pandabt-helper.injectDefaultSettings",
     async () => {
-      // doc을 null로 전달하여 글로벌(User) 설정을 대상으로 함
       await autoInjectDefaultsOnSettingsOpen(null, defaultCfg);
-
       const openSettings = "Open User settings.json";
       const result = await vscode.window.showInformationMessage(
         "PandaBT Helper: Default settings template injected into User settings.json.",
         openSettings
       );
-
       if (result === openSettings) {
         vscode.commands.executeCommand("workbench.action.openSettingsJson");
       }
@@ -63,22 +90,53 @@ async function activate(context) {
   );
   context.subscriptions.push(injectDefaultsCommand);
 
-  // 6. settings.json 저장 시 새로고침 (설정 변경 이벤트와 동일한 기능 수행)
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument(
       debounce(async (doc) => {
         if (isSettingsJson(doc)) {
-          // Provider를 다시 빌드하여 변경된 설정 반영
+          // settings.json 바뀌면 합성 재로딩 + 재등록
+          const info =
+            vscode.workspace
+              .getConfiguration()
+              .inspect("pandabt-helper.configuration") || {};
+          const userSettings =
+            (info.globalValue &&
+              typeof info.globalValue === "object" &&
+              info.globalValue) ||
+            (info.workspaceFolderValue &&
+              typeof info.workspaceFolderValue === "object" &&
+              info.workspaceFolderValue) ||
+            (info.workspaceValue &&
+              typeof info.workspaceValue === "object" &&
+              info.workspaceValue) ||
+            {};
+
+          const configFilesInfo =
+            vscode.workspace
+              .getConfiguration()
+              .inspect("pandabt-helper.configFiles") || {};
+          const configFiles =
+            (Array.isArray(configFilesInfo.globalValue) &&
+              configFilesInfo.globalValue) ||
+            (Array.isArray(configFilesInfo.workspaceFolderValue) &&
+              configFilesInfo.workspaceFolderValue) ||
+            (Array.isArray(configFilesInfo.workspaceValue) &&
+              configFilesInfo.workspaceValue) ||
+            [];
+
+          defaultCfg = loadComposedConfiguration(
+            context.extensionPath,
+            userSettings,
+            configFiles,
+            workspaceRoot
+          );
           await buildAndRegisterSemanticProvider(context, defaultCfg);
         }
-      }, 50)
+      }, 80)
     )
   );
 }
 
-/**
- * 확장 프로그램 비활성화 시 호출됩니다.
- */
 async function deactivate() {
   if (semanticRegistration) semanticRegistration.dispose();
   defaultCfg = null;
