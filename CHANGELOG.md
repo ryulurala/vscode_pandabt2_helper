@@ -117,3 +117,10 @@ All notable changes to the "Panda BT 2.0 Helper" extension will be documented in
 ### Fixed
 
 - command를 못찾는 버그 수정
+
+## [0.1.2] - 2025-10-27
+
+### Fixed
+
+- Workspace가 없어도 텍스트 하이라이팅 되도록 수정
+- README.md 업데이트
