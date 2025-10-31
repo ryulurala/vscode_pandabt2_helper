@@ -177,3 +177,4 @@ dist
 .pnp.*
 
 test/.vscode
+.vscode/settings.json
