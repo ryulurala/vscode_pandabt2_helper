@@ -118,9 +118,15 @@ All notable changes to the "Panda BT 2.0 Helper" extension will be documented in
 
 - command를 못찾는 버그 수정
 
-## [0.1.2] - 2025-10-27
+## [0.1.2] - 2025-10-29
 
 ### Fixed
 
 - Workspace가 없어도 텍스트 하이라이팅 되도록 수정
 - README.md 업데이트
+
+## [0.1.3] - 2025-10-31
+
+### Fixed
+
+- 'abortable' 키워드가 default token에 있을 필요가 없어서 제거
