@@ -14,10 +14,6 @@
       "match": "\\b(not|mute)\\b",
       "foreground": "#BBB7B7"
     },
-    "pbt.decorator.abortable": {
-      "match": "\\b(abortable)\\b",
-      "foreground": "#BBB7B7"
-    },
     "pbt.control.condition": {
       "match": "\\b(while|if|ifelse|before)\\b",
       "foreground": "#C678DD"

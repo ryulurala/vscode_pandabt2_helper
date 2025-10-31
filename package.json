@@ -25,28 +25,26 @@
   "icon": "img/pandabt-icon.png",
   "main": "main.js",
   "activationEvents": [
-    "onStartupFinished",
-    "onCommand:pandabt-helper.injectDefaultSettings",
-    "onLanguage:pandabt"
+    "onStartupFinished"
   ],
   "contributes": {
     "commands": [
       {
         "command": "pandabt-helper.injectDefaultSettings",
-        "title": "PandaBT Helper: Add Default Template to settings.json",
+        "title": "PandaBT 2.0 Helper: Add Default Template to settings.json",
         "icon": "$(add)"
       }
     ],
     "configuration": {
-      "title": "PandaBT Helper",
+      "title": "PandaBT 2.0 Helper",
       "properties": {
         "pandabt-helper.configuration": {
           "type": "object",
           "default": {
-            "version": "1.0.0",
+            "version": "0.1.0",
             "tokens": {
-              "pbt.tree": {
-                "match": "(\\b(tree)\\b|^\\s*#\\w+)",
+              "pbt.example": {
+                "match": "(\\b(example)\\b)",
                 "foreground": "#E06C75",
                 "fontStyle": "bold"
               }
@@ -54,7 +52,7 @@
           },
           "markdownDescription": "PandaBT용 정규식 기반 Semantic Token 토큰 규칙과 색상을 관리합니다. 이 설정을 편집하려면 아래 **'settings.json에 기본 템플릿 추가' 버튼**을 눌러주세요.",
           "scope": "resource",
-          "title": "PandaBT Semantic Token Configuration",
+          "title": "PandaBT 2.0 Semantic Token Configuration",
           "button": {
             "command": "pandabt-helper.injectDefaultSettings",
             "title": "$(add) settings.json에 기본 템플릿 추가 (Add Default Template)"
@@ -103,7 +101,7 @@
       {
         "id": "pandabt",
         "aliases": [
-          "PandaBT",
+          "PandaBT 2.0",
           "pandabt"
         ],
         "extensions": [
