@@ -1,9 +1,5 @@
 const vscode = require("vscode");
-const {
-  buildGlobalRegex,
-  computeCodeSpansForLine,
-  matchInsideSpans,
-} = require("./utils");
+const { buildGlobalRegex, computeCodeSpansForLine, matchInsideSpans } = require("./utils");
 
 /**
  * 정규식을 기반으로 문서에 Semantic Tokens을 제공하는 클래스입니다.

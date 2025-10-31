@@ -10,7 +10,7 @@ const {
 } = require("./utils");
 const { RegexSemanticProvider } = require("./semantic-provider");
 
-const CFG_CONFIG = "pandabt-helper.configuration";
+const CONFIG_PROPERTY_NAME = "pandabt-helper.configuration";
 
 /** @type {RegexSemanticProvider | null} */
 let currentProviderInstance = null;
@@ -20,7 +20,7 @@ let currentProviderInstance = null;
 async function autoInjectDefaultsOnSettingsOpen(doc, defaultCfg) {
   const { version, defaultTokens, defaultColors } = defaultCfg;
   const cfg = vscode.workspace.getConfiguration();
-  const info = cfg.inspect(CFG_CONFIG);
+  const info = cfg.inspect(CONFIG_PROPERTY_NAME);
 
   const scope = doc ? getScopeForSettingsDoc(doc) : "user";
 
@@ -62,7 +62,7 @@ async function autoInjectDefaultsOnSettingsOpen(doc, defaultCfg) {
       ? vscode.ConfigurationTarget.WorkspaceFolder
       : vscode.ConfigurationTarget.Global;
 
-  await cfg.update(CFG_CONFIG, payload, target);
+  await cfg.update(CONFIG_PROPERTY_NAME, payload, target);
 }
 
 // ---------------- 병합 & 색상 미러링 ----------------
@@ -84,7 +84,7 @@ function buildMergedTokensAndColors(defaultCfg) {
 
   // 2) 사용자 설정
   const cfg = vscode.workspace.getConfiguration();
-  const userObj = cfg.get(CFG_CONFIG);
+  const userObj = cfg.get(CONFIG_PROPERTY_NAME);
   const userTokensObj =
     userObj?.tokens && typeof userObj.tokens === "object" ? userObj.tokens : {};
 
@@ -238,14 +238,18 @@ async function onExtensionActivated(context, defaultCfg) {
   context.subscriptions.push(reg);
 
   if (!context.subscriptions.some((d) => d && d.__PANDABT_WATCHER__)) {
-    const watcher = createSettingsWatcher(context, defaultCfg, CFG_CONFIG);
+    const watcher = createSettingsWatcher(
+      context,
+      defaultCfg,
+      CONFIG_PROPERTY_NAME
+    );
     watcher.__PANDABT_WATCHER__ = true;
     context.subscriptions.push(watcher);
   }
 }
 
 module.exports = {
-  CFG_CONFIG,
+  CFG_CONFIG: CONFIG_PROPERTY_NAME,
   buildMergedTokensAndColors,
   mirrorColorsToEditorCustomizations,
   autoInjectDefaultsOnSettingsOpen,

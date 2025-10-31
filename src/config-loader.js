@@ -81,26 +81,11 @@ function mergeNormalized(base, later) {
  * @param {string[]} configFiles // pandabt-helper.configFiles (옵션)
  * @param {string | null} workspaceRoot
  */
-function loadComposedConfiguration(
-  extensionPath,
-  userSettings,
-  configFiles,
-  workspaceRoot
-) {
+function loadComposedConfiguration(extensionPath, userSettings, configFiles, workspaceRoot) {
   // 1) 내장 기본 파일 (기존 파일명 유지)
-  const builtInPathA = path.join(
-    extensionPath,
-    "config",
-    "pandabt-default-tokens.json"
-  );
-  const builtInPathB = path.join(
-    extensionPath,
-    "config",
-    "pandabt.default.tokens.json"
-  ); // 호환
-  const builtInRaw =
-    safeReadJSON(builtInPathA, null) ??
-    safeReadJSON(builtInPathB, { version: "0.0.0", tokens: {} });
+  const builtInPathA = path.join(extensionPath, "config", "pandabt-default-tokens.json");
+  const builtInPathB = path.join(extensionPath, "config", "pandabt.default.tokens.json"); // 호환
+  const builtInRaw = safeReadJSON(builtInPathA, null) ?? safeReadJSON(builtInPathB, { version: "0.0.0", tokens: {} });
   let acc = normalizeSettings(builtInRaw); // 시작점
   // 참고: 기존 코드는 단일 파일만 로드함. :contentReference[oaicite:2]{index=2}
 
@@ -114,9 +99,7 @@ function loadComposedConfiguration(
   }
 
   // 3) settings.json > pandabt-helper.configuration.extends 배열도 동일 처리
-  const extendsArr = Array.isArray(userSettings?.extends)
-    ? userSettings.extends
-    : [];
+  const extendsArr = Array.isArray(userSettings?.extends) ? userSettings.extends : [];
   for (const p of extendsArr) {
     const abs = resolvePathLike(p, workspaceRoot);
     const raw = safeReadJSON(abs, null);

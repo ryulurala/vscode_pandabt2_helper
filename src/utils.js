@@ -74,11 +74,7 @@ function mapTypeKey(type) {
  * @returns {boolean} settings.json 파일 여부
  */
 function isSettingsJson(doc) {
-  if (
-    doc?.uri?.scheme === "vscode-userdata" &&
-    /\/User\/settings\.json$/i.test(doc.uri.path)
-  )
-    return true;
+  if (doc?.uri?.scheme === "vscode-userdata" && /\/User\/settings\.json$/i.test(doc.uri.path)) return true;
   try {
     const p = doc?.uri?.fsPath || "";
     // .vscode/settings.json 확인 (워크스페이스/폴더 설정)
@@ -94,11 +90,7 @@ function isSettingsJson(doc) {
  */
 function getScopeForSettingsDoc(doc) {
   // 1. User/settings.json (Global)
-  if (
-    doc?.uri?.scheme === "vscode-userdata" &&
-    /\/User\/settings\.json$/i.test(doc.uri.path)
-  )
-    return "user";
+  if (doc?.uri?.scheme === "vscode-userdata" && /\/User\/settings\.json$/i.test(doc.uri.path)) return "user";
 
   // 2. WorkspaceFolder/.vscode/settings.json (Folder)
   const wf = vscode.workspace.getWorkspaceFolder(doc?.uri);
